@@ -1,7 +1,7 @@
 
 # survival
 logMessage("Run discontinuation as survival")
-result$survival <- summariseDiscontinuationAsSurvival(
+results$survival <- summariseDiscontinuationAsSurvival(
   cohort = cdm$study_cohort,
   cohortId = sprintf("beta_blockers_%03i", gaps),
   followUpDays = 730
@@ -9,7 +9,7 @@ result$survival <- summariseDiscontinuationAsSurvival(
 
 # competing risk
 logMessage("Run discontinuation as competing risk")
-result$competing_risk <- summariseDiscontinuationAsSurvival(
+results$competing_risk <- summariseDiscontinuationAsSurvival(
   cohort = cdm$study_cohort,
   cohortId = sprintf("beta_blockers_%03i", gaps),
   followUpDays = 730,
@@ -19,7 +19,7 @@ result$competing_risk <- summariseDiscontinuationAsSurvival(
 
 # proportion of patients covered
 logMessage("Run discontinuation as proportion of patients covered")
-result$ppc <- summariseProportionOfPatientsCovered(
+results$ppc <- summariseProportionOfPatientsCovered(
   cohort = cdm$study_cohort,
   cohortId = sprintf("beta_blockers_%03i", gaps),
   followUpDays = 730
@@ -32,7 +32,7 @@ for (gap in gaps) {
     x = list(c(2, 3), c(1, 3), c()),
     names = c(sprintf("beta_blockers_%03i", gap), sprintf("beta_blockers_untreated_%03i", gap), "death")
   )
-  result[[sprintf("multi_state_%03i", gap)]] <- summariseMultiStateProbabilities(
+  results[[sprintf("multi_state_%03i", gap)]] <- summariseMultiStateProbabilities(
     cohort = cdm$study_cohort,
     tmat = tmat,
     followUpDays = 730
