@@ -30,6 +30,9 @@ results[["obs_period"]] <- summariseObservationPeriod(cdm)
 logMessage("Instantiating study cohorts")
 source(here("analyses", "instantiateCohorts.R"))
 
+logMessage("Summarise cohort code use stroke")
+results[["code_use"]] <- summariseCohortCodeUse()
+
 logMessage("Characterisa cohorts")
 source(here("analyses", "cohortCharacteristics.R"))
 
