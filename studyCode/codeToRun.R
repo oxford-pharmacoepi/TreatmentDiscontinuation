@@ -12,10 +12,9 @@ library(CohortConstructor)
 library(PatientProfiles)
 library(CohortCharacteristics)
 library(DrugUtilisation)
-library(IncidencePrevalence)
 library(CohortSurvival)
-library(odbc)
 library(RPostgres)
+library(cli)
 
 # database metadata and connection details
 # The name/ acronym for the database

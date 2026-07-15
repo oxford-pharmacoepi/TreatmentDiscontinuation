@@ -14,7 +14,7 @@ createLogFile(logFile = tempfile(pattern = "log_{date}_{time}"))
 logMessage("LOG CREATED")
 
 # Define analysis settings -----
-study_period <- c(as.Date(NA), as.Date(NA))
+strata <- list("prior_heart_failure")
 gaps <- seq(from = 0, to = 120, by = 10)
 
 # Initialise list to store results as we go -----
@@ -30,8 +30,8 @@ results[["obs_period"]] <- summariseObservationPeriod(cdm)
 logMessage("Instantiating study cohorts")
 source(here("analyses", "instantiateCohorts.R"))
 
-logMessage("Summarise cohort code use stroke")
-results[["code_use"]] <- summariseCohortCodeUse()
+logMessage("Summarise code use")
+results[["code_use"]] <- summariseCodeUse(x = codes, cdm = cdm)
 
 logMessage("Characterisa cohorts")
 source(here("analyses", "cohortCharacteristics.R"))
