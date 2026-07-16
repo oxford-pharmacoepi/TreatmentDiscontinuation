@@ -9,7 +9,6 @@ cdm$acute_mi <- conceptCohort(
 ) |>
   requireIsFirstEntry() |>
   addConceptIntersectFlag(
-    indexDate = "mi_date",
     conceptSet = codes["heart_failure"],
     window = c(-Inf, 0),
     nameStyle = "prior_heart_failure",
@@ -17,9 +16,6 @@ cdm$acute_mi <- conceptCohort(
   ) |>
   mutate(prior_heart_failure = if_else(prior_heart_failure == 1, "Yes", "No")) |>
   compute(name = "acute_mi")
-
-logMessage("Instantiate death cohort")
-cdm$death_cohort <- deathCohort(cdm = cdm, name = "death_cohort", subsetCohort = "acute_mi")
 
 logMessage("Instantiate beta blockers cohort")
 cdm$drugs <- conceptCohort(
@@ -34,6 +30,9 @@ cdm$drugs <- conceptCohort(
     atFirst = TRUE
   )
 
+logMessage("Instantiate death cohort")
+cdm$death_cohort <- deathCohort(cdm = cdm, name = "death_cohort", subsetCohort = "drugs")
+
 logMessage("Collapse beta blockers cohorts")
 cdm$drugs <- cdm$drugs |>
   copyCohorts(name = "drugs", n = length(gaps)) |>
@@ -45,7 +44,7 @@ for (gap in gaps) {
 
 logMessage("Create untreated beta blockers cohorts")
 cdm$untreated <- cdm$drugs |>
-  padCohortEnd(days = 1L, name = "untreated") |>
+  padCohortEnd(days = 1L, name = "untreated", requireFullContribution = TRUE) |>
   padCohortDate(days = 0L, cohortDate = "cohort_start_date", indexDate = "cohort_end_date") |>
   renameCohort(newCohortName = sprintf("untreated_%03i", gaps))
 
