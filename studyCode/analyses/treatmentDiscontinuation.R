@@ -1,6 +1,6 @@
 
 # survival
-logMessage("Run discontinuation as survival for mi")
+logMessage("Run discontinuation as survival")
 results$survival <- summariseDiscontinuationAsSurvival(
   cohort = cdm$study_cohorts,
   cohortId = sprintf("beta_blockers_%03i", gaps),

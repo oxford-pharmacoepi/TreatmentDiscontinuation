@@ -28,7 +28,8 @@ cdm$drugs <- conceptCohort(
     targetCohortTable = "acute_mi",
     window = c(-28, 0),
     atFirst = TRUE
-  )
+  ) |>
+  requireFutureObservation(minFutureObservation = 1)
 
 logMessage("Instantiate death cohort")
 cdm$death_cohort <- deathCohort(cdm = cdm, name = "death_cohort", subsetCohort = "drugs")
@@ -50,7 +51,6 @@ cdm$untreated <- cdm$drugs |>
 
 logMessage("Bind cohorts together")
 cdm <- bind(cdm$acute_mi, cdm$death_cohort, cdm$drugs, cdm$untreated, name = "study_cohorts")
-cdm <- dropSourceTable(cdm = cdm, name = c("acute_mi", "drugs", "untreated", "death_cohort"))
 
 logMessage("Add prior heart failure strata")
 cdm$study_cohorts <- cdm$study_cohorts |>
@@ -61,3 +61,5 @@ cdm$study_cohorts <- cdm$study_cohorts |>
     nameStyle = "prior_heart_failure",
     name = "study_cohorts"
   )
+
+cdm <- dropSourceTable(cdm = cdm, name = c("acute_mi", "drugs", "untreated", "death_cohort"))

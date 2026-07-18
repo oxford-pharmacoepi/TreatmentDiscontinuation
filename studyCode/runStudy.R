@@ -34,7 +34,7 @@ source(here("analyses", "treatmentDiscontinuation.R"))
 
 # Finish ----
 exportSummarisedResult(
-  results,
+  bind(results),
   minCellCount = min_cell_count,
   fileName = "results_{cdm_name}_{date}.csv",
   path = here("results")
