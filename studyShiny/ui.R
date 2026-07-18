@@ -1637,105 +1637,36 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Logs",
     icon = shiny::icon("clipboard-list"),
-    bslib::layout_sidebar(
-      sidebar = bslib::sidebar(
-        shinyWidgets::pickerInput(
-          inputId = "summarise_log_file_cdm_name",
-          label = "CDM name",
-          choices = choices$summarise_log_file_cdm_name,
-          selected = selected$summarise_log_file_cdm_name,
-          multiple = TRUE,
-          options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-        ),
-        shinyWidgets::pickerInput(
-          inputId = "summarise_log_file_variable_name",
-          label = "Variable name",
-          choices = choices$summarise_log_file_variable_name,
-          selected = selected$summarise_log_file_variable_name,
-          multiple = TRUE,
-          options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-        ),
-        position = "left"
+    bslib::navset_card_tab(
+      bslib::nav_panel(
+        title = "Table Logs",
+        bslib::card(
+          full_screen = TRUE,
+          bslib::card_header(
+            bslib::popover(
+              shiny::icon("download"),
+              shinyWidgets::pickerInput(
+                inputId = "summarise_log_file_table_format",
+                label = "Format",
+                choices = c("docx", "png", "pdf", "html"),
+                selected = "docx",
+                multiple = FALSE,
+                options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+              ),
+              shiny::downloadButton(outputId = "summarise_log_file_table_download", label = "Download table")
+            ),
+            class = "text-end"
+          ),
+          gt::gt_output("summarise_log_file_table") |>
+            shinycssloaders::withSpinner()
+        )
       ),
-      bslib::navset_card_tab(
-        bslib::nav_panel(
-          title = "Table Logs",
-          bslib::card(
-            full_screen = TRUE,
-            bslib::card_header(
-              bslib::popover(
-                shiny::icon("download"),
-                shinyWidgets::pickerInput(
-                  inputId = "summarise_log_file_table_format",
-                  label = "Format",
-                  choices = c("docx", "png", "pdf", "html"),
-                  selected = "docx",
-                  multiple = FALSE,
-                  options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                ),
-                shiny::downloadButton(outputId = "summarise_log_file_table_download", label = "Download table")
-              ),
-              class = "text-end"
-            ),
-            gt::gt_output("summarise_log_file_table") |>
-              shinycssloaders::withSpinner()
-          )
-        ),
-        bslib::nav_panel(
-          title = "Plot Timing",
-          bslib::card(
-            full_screen = TRUE,
-            bslib::card_header(
-              bslib::popover(
-                shiny::icon("download"),
-                shiny::numericInput(
-                  inputId = "summarise_log_file_plot_width",
-                  label = "Width",
-                  value = 15
-                ),
-                shiny::numericInput(
-                  inputId = "summarise_log_file_plot_height",
-                  label = "Height",
-                  value = 15
-                ),
-                shinyWidgets::pickerInput(
-                  inputId = "summarise_log_file_plot_units",
-                  label = "Units",
-                  choices = c("px", "cm", "inch"),
-                  selected = "cm",
-                  multiple = FALSE,
-                  options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                ),
-                shiny::numericInput(
-                  inputId = "summarise_log_file_plot_dpi",
-                  label = "DPI",
-                  value = 300
-                ),
-                shiny::downloadButton(outputId = "summarise_log_file_plot_download", label = "Download plot")
-              ),
-              class = "text-end"
-            ),
-            bslib::layout_sidebar(
-              sidebar = bslib::sidebar(
-                shinyWidgets::materialSwitch(
-                  inputId = "summarise_log_file_plot_interactive",
-                  label = "Interactive",
-                  value = TRUE
-                ),
-                shinyWidgets::pickerInput(
-                  inputId = "summarise_log_file_plot_position",
-                  label = "Columns",
-                  choices = c("dodge", "stack"),
-                  selected = "stack",
-                  multiple = FALSE,
-                  options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                ),
-                position = "right"
-              ),
-              shiny::uiOutput("summarise_log_file_plot") |>
-                shinycssloaders::withSpinner()
-            )
-          )
+      bslib::nav_panel(
+        title = "Plot Timing",
+        bslib::card(
+          full_screen = TRUE,
+          shiny::plotOutput("summarise_log_file_plot") |>
+            shinycssloaders::withSpinner()
         )
       )
     )

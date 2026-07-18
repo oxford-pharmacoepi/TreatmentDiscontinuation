@@ -346,58 +346,34 @@ server <- function(input, output, session) {
   )
 
   # summarise_log_file -----
-  ## get summarise_log_file data
-  getSummariseLogFileData <- shiny::reactive({
-    data[["summarise_log_file"]] |>
-      dplyr::filter(
-        .data$cdm_name %in% input$summarise_log_file_cdm_name,
-        .data$variable_name %in% input$summarise_log_file_variable_name
-      )
-  })
-  getSummariseLogFileTable <- shiny::reactive({
-    getSummariseLogFileData() |>
+  output$summarise_log_file_table <- gt::render_gt({
+    data$summarise_log_file |>
       dplyr::filter(.data$estimate_name == "date_time") |>
       visOmopResults::visOmopTable(
         header = "cdm_name",
         hide = c("variable_level", "estimate_name")
       )
   })
-  output$summarise_log_file_table <- gt::render_gt({
-    getSummariseLogFileTable()
-  })
-  output$summarise_log_file_table_download <- shiny::downloadHandler(
-    filename = paste0("table_log.", input$summarise_log_file_table_format),
-    content = function(file) {
-      gt::gtsave(getSummariseLogFileTable(), file)
-    }
-  )
-  getSummariseLogFilePlot <- shiny::reactive({
-    getSummariseLogFileData() |>
+  output$summarise_log_file_plot <- shiny::renderPlot({
+    x <- data$summarise_log_file |>
       dplyr::filter(.data$estimate_name == "elapsed_time") |>
-      visOmopResults::barPlot(
-        x = c("log_id", "variable_name"),
-        y = "elapsed_time",
-        colour = "cdm_name",
-        position = input$summarise_log_file_plot_position
-      )
-  })
-  output$summarise_log_file_plot <- shiny::renderUI({
-    x <- getSummariseLogFilePlot()
-    renderInteractivePlot(x, input$summarise_log_file_plot_interactive)
-  })
-  output$summarise_log_file_plot_download <- shiny::downloadHandler(
-    filename = "plot_logs.png",
-    content = function(file) {
-      ggplot2::ggsave(
-        filename = file,
-        plot = getSummariseLogFilePlot(),
-        width = as.numeric(input$summarise_log_file_plot_width),
-        height = as.numeric(input$summarise_log_file_plot_height),
-        units = input$summarise_log_file_plot_units,
-        dpi = as.numeric(input$summarise_log_file_plot_dpi)
-      )
-    }
-  )
+      omopgenerics::tidy() |>
+      dplyr::mutate(variable_name = sprintf("%02i - %s", as.integer(log_id), variable_name))
+    ggplot2::ggplot(data = x, mapping = ggplot2::aes(x = variable_name, y = elapsed_time, fill = cdm_name)) +
+      ggplot2::geom_col(position = "dodge") +
+      ggplot2::geom_text(
+        mapping = ggplot2::aes(label = round(elapsed_time, 1)),
+        position = ggplot2::position_dodge2(width = 0.9),
+        vjust = -0.3,
+        size = 3
+      ) +
+      visOmopResults::themeVisOmop() +
+      ggplot2::theme(
+        legend.position = "top",
+        axis.text.x = ggplot2::element_text(angle = 60, hjust = 1)
+      ) +
+      ggplot2::labs(x = "Task", y = "Time (seconds)")
+  }, height = 700)
 
   # summarise_multistate_probabilities -----
   ## get summarise_multistate_probabilities data
