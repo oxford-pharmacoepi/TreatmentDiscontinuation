@@ -447,3 +447,89 @@ updateMessage <- shiny::div(
   shiny::icon("circle-exclamation"),
   "Filters have changed please consider to use the update content button!"
 )
+visualiseDataSourceDescription <- function() {
+  rlang::check_installed(c("shiny", "bslib", "commonmark"))
+  sources <- dataSources()
+
+  panels <- purrr::map(unname(sources), \(description) {
+    bslib::nav_panel(
+      title = description$administrative_details$data_source_acronym,
+      dataSourceMarkdownHtml(description)
+    )
+  })
+  
+  do.call(bslib::navset_card_tab, args = panels)
+}
+
+dataSources <- function() {
+  DataSourceDescriptions::importDataSourceDescription(path = here::here("data", "dataSourceDescriptions"), type = "json") |>
+    suppressMessages()
+}
+
+dataSourceMarkdownHtml <- function(description) {
+  dataSourceMarkdown(description) |>
+    commonmark::markdown_html() |>
+    shiny::HTML()
+}
+
+dataSourceMarkdown <- function(description) {
+  c(
+    dataSourceSectionMarkdown(
+      title = "Administrative details",
+      section = "administrative_details",
+      fields = description$administrative_details
+    ),
+    dataSourceSectionMarkdown(
+      title = "Data collection",
+      section = "data_collection",
+      fields = description$data_collection
+    ),
+    dataSourceSectionMarkdown(
+      title = "OMOP standardisation",
+      section = "omop_standardisation",
+      fields = description$omop_standardisation
+    )
+  ) |>
+    paste(collapse = "\n\n")
+}
+
+dataSourceSectionMarkdown <- function(title, section, fields) {
+  fieldNames <- DataSourceDescriptions:::dataSourceDescriptionFields()[[section]]
+  fieldNames <- c(fieldNames$required, fieldNames$optional)
+  
+  c(
+    paste0("### ", title),
+    purrr::map_chr(fieldNames, \(field) {
+      dataSourceFieldMarkdown(field, fields[[field]])
+    })
+  ) |>
+    paste(collapse = "\n\n")
+}
+
+dataSourceFieldMarkdown <- function(field, value) {
+  paste0(
+    "**", prettyDataSourceField(field), "**: ",
+    ifelse(is.na(value), "*Not available*", linkMarkdownUrls(value))
+  )
+}
+
+prettyDataSourceField <- function(field) {
+  field |>
+    stringr::str_replace_all("_", " ") |>
+    stringr::str_to_title() |>
+    stringr::str_replace_all(c(
+      "\\bOf\\b" = "of",
+      "\\bOmop\\b" = "OMOP",
+      "\\bHma Ema\\b" = "HMA-EMA"
+    ))
+}
+
+linkMarkdownUrls <- function(value) {
+  value <- as.character(value)
+  gsub(
+    "(?<!<)(https?://[^[:space:]<>]+)(?!>)",
+    "<\\1>",
+    value,
+    perl = TRUE
+  )
+}

@@ -22,6 +22,11 @@ ui <- bslib::page_navbar(
     title = "Database",
     icon = shiny::icon("list"),
     bslib::nav_panel(
+      title = "Database Description",
+      icon = shiny::icon("file-lines"),
+      visualiseDataSourceDescription()
+    ),
+    bslib::nav_panel(
       title = "Snapshot",
       icon = shiny::icon("camera"),
       bslib::layout_sidebar(
