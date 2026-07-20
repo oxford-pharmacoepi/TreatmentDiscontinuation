@@ -41,5 +41,73 @@ if (!file.exists(fileData)) {
 # load shiny data
 load(fileData)
 
+gaps <- choices$summarise_cohort_count_cohort_name |>
+  purrr::keep(\(x) stringr::str_starts(x, "beta_blockers_")) |>
+  stringr::str_remove("beta_blockers_") |>
+  as.numeric() |>
+  unique() |>
+  sort() |>
+  sprintf(fmt = "%i")
+selectedGaps <- gaps
+methods <- c("survival", "competing_risks", "proportion_of_patients_covered", "multistate")
+
+data$discontinuation <- data$discontinuation |>
+  dplyr::filter(.data$group_name %in% c("cohort_name", "overall")) |>
+  dplyr::filter(stringr::str_starts(.data$variable_name, "Survival|Cumulative|prob|overall")) |>
+  omopgenerics::tidy() |>
+  dplyr::mutate(
+    method = dplyr::case_when(
+      stringr::str_starts(.data$variable_name, "Survival") ~ "survival",
+      stringr::str_starts(.data$variable_name, "Cumulative") ~ "competing_risks",
+      stringr::str_starts(.data$variable_name, "overall") ~ "proportion_of_patients_covered",
+      stringr::str_starts(.data$variable_name, "prob") ~ "multistate"
+    ),
+    gap = dplyr::if_else(
+      .data$cohort_name != "overall",
+      as.character(as.integer(stringr::str_extract(.data$cohort_name, "(?<=beta_blockers_)\\d+"))),
+      as.character(as.integer(stringr::str_extract(.data$state_hierarchy, "\\d+$")))
+    ),
+    estimate = dplyr::case_when(
+      .data$method == "survival" ~ .data$estimate,
+      .data$method == "competing_risks" ~ 1 - .data$estimate,
+      .data$method == "proportion_of_patients_covered" ~ .data$ppc / 100,
+      .data$method == "multistate" ~ .data$probability
+    ),
+    estimate_lower = dplyr::case_when(
+      .data$method == "survival" ~ .data$estimate_95CI_lower,
+      .data$method == "competing_risks" ~ 1- .data$estimate_95CI_lower,
+      .data$method == "proportion_of_patients_covered" ~ .data$ppc_lower / 100,
+      .data$method == "multistate" ~ NA_real_
+    ),
+    estimate_upper = dplyr::case_when(
+      .data$method == "survival" ~ .data$estimate_95CI_upper,
+      .data$method == "competing_risks" ~ 1 - .data$estimate_95CI_upper,
+      .data$method == "proportion_of_patients_covered" ~ .data$ppc_upper / 100,
+      .data$method == "multistate" ~ NA_real_
+    ),
+    cohort_name = dplyr::case_when(
+      .data$method == "survival" ~ "beta_blockers",
+      .data$method == "competing_risks" ~ dplyr::if_else(grepl("Competing outcome", .data$variable_name), "death_cohort", "beta_blockers"),
+      .data$method == "proportion_of_patients_covered" ~ "beta_blockers",
+      .data$method == "multistate" ~ stringr::str_replace(.data$variable_name, "^prob_(.*?)(?:_\\d+)?$", "\\1")
+    ),
+    variable_name = dplyr::case_when(
+      .data$method == "survival" ~ "Survival probability",
+      .data$method == "competing_risks" ~ "1 - Cummulative incidence",
+      .data$method == "proportion_of_patients_covered" ~ "Proportion of Patients Covered",
+      .data$method == "multistate" ~ "Probability"
+    ),
+    time = dplyr::case_when(
+      .data$method == "survival" ~ as.numeric(.data$variable_level),
+      .data$method == "competing_risks" ~ as.numeric(.data$variable_level),
+      .data$method == "proportion_of_patients_covered" ~ as.numeric(.data$time),
+      .data$method == "multistate" ~ as.numeric(.data$variable_level)
+    )
+  ) |>
+  dplyr::select(
+    "cdm_name", "method", "cohort_name", "gap", "prior_heart_failure",
+    "variable_name", "time", "estimate", "estimate_lower", "estimate_upper"
+  )
+
 # source functions
 source(file.path(getwd(), "functions.R"))

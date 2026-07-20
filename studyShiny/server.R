@@ -50,7 +50,7 @@ server <- function(input, output, session) {
         .data$variable_name %in% input$summarise_observation_period_variable_name,
         .data$estimate_name %in% input$summarise_observation_period_estimate_name
       ) |>
-      omopgenerics::filterGroup(.data$observation_period_ordinal %in% input$summarise_observation_period_observation_period_ordinal)
+      omopgenerics::filterGroup(.data$observation_period_ordinal == "all")
   })
   getSummariseObservationPeriodTable <- shiny::reactive({
     getSummariseObservationPeriodData() |>
@@ -423,46 +423,61 @@ server <- function(input, output, session) {
   # single_survival -----
   ## get single_survival data
   getSingleSurvivalData <- shiny::reactive({
+    pt <- paste0(sprintf("%03i", as.integer(input$single_survival_gap)), collapse = "|")
     data[["single_survival"]] |>
       dplyr::filter(
-        .data$cdm_name %in% input$single_survival_cdm_name,
-        .data$variable_name %in% input$single_survival_variable_name,
-        .data$estimate_name %in% input$single_survival_estimate_name
+        .data$cdm_name %in% input$single_survival_cdm_name
       ) |>
-      omopgenerics::filterGroup(.data$cohort_name %in% input$single_survival_cohort_name) |>
+      omopgenerics::filterGroup(stringr::str_ends(.data$cohort_name, pt)) |>
       omopgenerics::filterStrata(.data$prior_heart_failure %in% input$single_survival_prior_heart_failure)
   })
-  getSingleSurvivalTidy <- shiny::reactive({
-    tidyDT(getSingleSurvivalData(), input$single_survival_tidy_columns, input$single_survival_tidy_pivot_estimates)
-  })
-  output$single_survival_tidy <- DT::renderDT({
-    getSingleSurvivalTidy()
-  })
-  output$single_survival_tidy_download <- shiny::downloadHandler(
-    filename = "tidy_results.csv",
-    content = function(file) {
-      getSingleSurvivalData() |>
-        omopgenerics::tidy() |>
-        readr::write_csv(file = file)
-    }
-  )
-  getSingleSurvivalTable <- shiny::reactive({
+  output$single_summary <- gt::render_gt({
     getSingleSurvivalData() |>
-      simpleTable(
-        header = input$single_survival_table_header,
-        group = input$single_survival_table_group_column,
-        hide = input$single_survival_table_hide
+      DrugUtilisation::tableDiscontinuationAsSurvival(
+        groupColumn = "cohort_name",
+        header = c("cdm_name", "prior_heart_failure"),
+        hide = c("variable_level", "variable_name", "competing_outcome", "estimate_gap",
+            "event_gap", "follow_up_days", "cohort_survival_version"),
+        gapSummary = FALSE
       )
   })
-  output$single_survival_table <- gt::render_gt({
-    getSingleSurvivalTable()
+  output$single_events <- gt::render_gt({
+    getSingleSurvivalData() |>
+      filter(stringr::str_starts(.data$variable_name, "Gap")) |>
+      DrugUtilisation::tableDiscontinuationAsSurvival(
+        groupColumn = "cohort_name",
+        header = c("cdm_name", "prior_heart_failure"),
+        hide = c("variable_name", "competing_outcome", "estimate_gap",
+                 "event_gap", "follow_up_days", "cohort_survival_version")
+      )
   })
-  output$single_survival_table_download <- shiny::downloadHandler(
-    filename = paste0("table.", input$single_survival_table_format),
-    content = function(file) {
-      gt::gtsave(getSingleSurvivalTable(), file)
+  output$single_probbaility <- reactable::renderReactable({
+    getSingleSurvivalData() |>
+      filter(stringr::str_starts(.data$variable_name, "Survival")) |>
+      omopgenerics::tidy() |>
+      dplyr::mutate(variable_name = "Survival probability") |>
+      dplyr::rename("time" = "variable_level") |>
+      dplyr::select(!c(
+        "cohort_survival_version", "competing_outcome", "estimate_gap",
+        "event_gap", "follow_up_days"
+      )) |>
+      reactable::reactable(sortable = TRUE, filterable = TRUE, defaultPageSize = 20)
+  })
+  output$single_plot <- shiny::renderPlot({
+    if (input$single_compare == "gaps") {
+      facet <- "prior_heart_failure"
+      colour <- "cohort_name"
+    } else {
+      colour <- "prior_heart_failure"
+      facet <- "cohort_name"
     }
-  )
+    getSingleSurvivalData() |>
+      DrugUtilisation::plotDiscontinuationAsSurvival(
+        facet = facet,
+        colour = colour
+      ) +
+      ggplot2::theme(legend.position = "top")
+  })
 
   # competing_survival -----
   ## get competing_survival data
@@ -514,54 +529,13 @@ server <- function(input, output, session) {
     data[["discontinuation"]] |>
       dplyr::filter(
         .data$cdm_name %in% input$discontinuation_cdm_name,
-        .data$variable_name %in% input$discontinuation_variable_name,
-        .data$estimate_name %in% input$discontinuation_estimate_name
-      ) |>
-      omopgenerics::filterGroup(
-        .data$cohort_name %in% input$discontinuation_cohort_name,
-        .data$initial_state %in% input$discontinuation_initial_state
-      ) |>
-      omopgenerics::filterStrata(.data$prior_heart_failure %in% input$discontinuation_prior_heart_failure) |>
-      omopgenerics::filterSettings(
-        .data$cohort_survival_version %in% input$discontinuation_cohort_survival_version,
-        .data$cohort_table_name %in% input$discontinuation_cohort_table_name,
-        .data$competing_outcome %in% input$discontinuation_competing_outcome,
-        .data$estimate_gap %in% input$discontinuation_estimate_gap,
-        .data$event_gap %in% input$discontinuation_event_gap,
-        .data$follow_up_days %in% input$discontinuation_follow_up_days,
-        .data$state_hierarchy %in% input$discontinuation_state_hierarchy,
-        .data$state_step %in% input$discontinuation_state_step
+        .data$gap %in% input$discontinuation_gap,
+        .data$method %in% input$discontinuation_method
       )
   })
-  getDiscontinuationTidy <- shiny::reactive({
-    tidyDT(getDiscontinuationData(), input$discontinuation_tidy_columns, input$discontinuation_tidy_pivot_estimates)
-  })
-  output$discontinuation_tidy <- DT::renderDT({
-    getDiscontinuationTidy()
-  })
-  output$discontinuation_tidy_download <- shiny::downloadHandler(
-    filename = "tidy_results.csv",
-    content = function(file) {
-      getDiscontinuationData() |>
-        omopgenerics::tidy() |>
-        readr::write_csv(file = file)
-    }
-  )
-  getDiscontinuationTable <- shiny::reactive({
+  output$discontinuation_explore <- reactable::renderReactable({
     getDiscontinuationData() |>
-      simpleTable(
-        header = input$discontinuation_table_header,
-        group = input$discontinuation_table_group_column,
-        hide = input$discontinuation_table_hide
-      )
+      reactable::reactable(filterable = TRUE)
   })
-  output$discontinuation_table <- gt::render_gt({
-    getDiscontinuationTable()
-  })
-  output$discontinuation_table_download <- shiny::downloadHandler(
-    filename = paste0("table.", input$discontinuation_table_format),
-    content = function(file) {
-      gt::gtsave(getDiscontinuationTable(), file)
-    }
-  )
+  
 }

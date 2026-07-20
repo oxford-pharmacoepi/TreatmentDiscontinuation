@@ -118,14 +118,6 @@ ui <- bslib::page_navbar(
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "summarise_observation_period_observation_period_ordinal",
-            label = "Observation period ordinal",
-            choices = choices$summarise_observation_period_observation_period_ordinal,
-            selected = selected$summarise_observation_period_observation_period_ordinal,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
             inputId = "summarise_observation_period_variable_name",
             label = "Variable name",
             choices = choices$summarise_observation_period_variable_name,
@@ -856,7 +848,7 @@ ui <- bslib::page_navbar(
     title = "Discontinuation",
     icon = shiny::icon("list"),
     bslib::nav_panel(
-      title = "<result_type>",
+      title = "Single survival estimates",
       icon = shiny::icon("folder"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
@@ -869,10 +861,10 @@ ui <- bslib::page_navbar(
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "single_survival_cohort_name",
-            label = "Cohort name",
-            choices = choices$single_survival_cohort_name,
-            selected = selected$single_survival_cohort_name,
+            inputId = "single_survival_gap",
+            label = "Gap",
+            choices = gaps,
+            selected = selectedGaps,
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
@@ -884,107 +876,42 @@ ui <- bslib::page_navbar(
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
-          shinyWidgets::pickerInput(
-            inputId = "single_survival_variable_name",
-            label = "Variable name",
-            choices = choices$single_survival_variable_name,
-            selected = selected$single_survival_variable_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "single_survival_estimate_name",
-            label = "Estimate name",
-            choices = choices$single_survival_estimate_name,
-            selected = selected$single_survival_estimate_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
           position = "left"
         ),
         bslib::navset_card_tab(
           bslib::nav_panel(
-            title = "Tidy",
+            title = "Summary statistics",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::downloadButton(outputId = "single_survival_tidy_download", label = "Download csv")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "single_survival_tidy_columns",
-                    label = "Columns",
-                    choices = c("cdm_name", "cohort_name", "prior_heart_failure", "cohort_survival_version", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "variable_name", "variable_level"),
-                    selected = c("cdm_name", "cohort_name", "prior_heart_failure", "variable_name", "variable_level"),
-                    multiple = TRUE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "single_survival_tidy_pivot_estimates",
-                    label = "Pivot estimates",
-                    value = TRUE
-                  ),
-                  position = "right"
-                ),
-                DT::DTOutput("single_survival_tidy") |>
-                  shinycssloaders::withSpinner()
-              )
+              gt::gt_output("single_summary")
             )
           ),
           bslib::nav_panel(
-            title = "Table",
+            title = "Number events summary",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "single_survival_table_format",
-                    label = "Format",
-                    choices = c("docx", "png", "pdf", "html"),
-                    selected = "docx",
-                    multiple = FALSE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::downloadButton(outputId = "single_survival_table_download", label = "Download table")
-                ),
-                class = "text-end"
+              gt::gt_output("single_events")
+            )
+          ),
+          bslib::nav_panel(
+            title = "Survival probability",
+            bslib::card(
+              full_screen = TRUE,
+              reactable::reactableOutput("single_probbaility")
+            )
+          ),
+          bslib::nav_panel(
+            title = "Kaplan Meier",
+            bslib::card(
+              full_screen = TRUE,
+              shiny::radioButtons(
+                inputId = "single_compare",
+                label = "Compare",
+                choices = c("gaps", "prior_heart_failure"),
+                selected = "gaps",
+                inline = TRUE
               ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "None",
-                      labels = c("cdm_name", "cohort_name", "prior_heart_failure", "cohort_survival_version", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "variable_name", "variable_level", "estimate_name"),
-                      input_id = "single_survival_table_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Header",
-                      labels = character(),
-                      input_id = "single_survival_table_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Group columns",
-                      labels = character(),
-                      input_id = "single_survival_table_group_column"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Hide",
-                      labels = character(),
-                      input_id = "single_survival_table_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("single_survival_table") |>
-                  shinycssloaders::withSpinner()
-              )
+              shiny::plotOutput("single_plot")
             )
           )
         )
@@ -1004,10 +931,10 @@ ui <- bslib::page_navbar(
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "competing_survival_cohort_name",
-            label = "Cohort name",
-            choices = choices$competing_survival_cohort_name,
-            selected = selected$competing_survival_cohort_name,
+            inputId = "single_survival_gap",
+            label = "Gap",
+            choices = gaps,
+            selected = selectedGaps,
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
@@ -1019,107 +946,35 @@ ui <- bslib::page_navbar(
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
-          shinyWidgets::pickerInput(
-            inputId = "competing_survival_variable_name",
-            label = "Variable name",
-            choices = choices$competing_survival_variable_name,
-            selected = selected$competing_survival_variable_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "competing_survival_estimate_name",
-            label = "Estimate name",
-            choices = choices$competing_survival_estimate_name,
-            selected = selected$competing_survival_estimate_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
           position = "left"
         ),
         bslib::navset_card_tab(
           bslib::nav_panel(
-            title = "Tidy",
+            title = "Summary statistics",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::downloadButton(outputId = "competing_survival_tidy_download", label = "Download csv")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "competing_survival_tidy_columns",
-                    label = "Columns",
-                    choices = c("cdm_name", "cohort_name", "prior_heart_failure", "cohort_survival_version", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "variable_name", "variable_level"),
-                    selected = c("cdm_name", "cohort_name", "prior_heart_failure", "variable_name", "variable_level"),
-                    multiple = TRUE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "competing_survival_tidy_pivot_estimates",
-                    label = "Pivot estimates",
-                    value = TRUE
-                  ),
-                  position = "right"
-                ),
-                DT::DTOutput("competing_survival_tidy") |>
-                  shinycssloaders::withSpinner()
-              )
+              gt::gt_output("competing_summary")
             )
           ),
           bslib::nav_panel(
-            title = "Table",
+            title = "Number events summary",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "competing_survival_table_format",
-                    label = "Format",
-                    choices = c("docx", "png", "pdf", "html"),
-                    selected = "docx",
-                    multiple = FALSE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::downloadButton(outputId = "competing_survival_table_download", label = "Download table")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "None",
-                      labels = c("cdm_name", "cohort_name", "prior_heart_failure", "cohort_survival_version", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "variable_name", "variable_level", "estimate_name"),
-                      input_id = "competing_survival_table_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Header",
-                      labels = character(),
-                      input_id = "competing_survival_table_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Group columns",
-                      labels = character(),
-                      input_id = "competing_survival_table_group_column"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Hide",
-                      labels = character(),
-                      input_id = "competing_survival_table_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("competing_survival_table") |>
-                  shinycssloaders::withSpinner()
-              )
+              gt::gt_output("competing_events")
+            )
+          ),
+          bslib::nav_panel(
+            title = "Cumulative incidence (table)",
+            bslib::card(
+              full_screen = TRUE,
+              reactable::reactableOutput("competing_probbaility")
+            )
+          ),
+          bslib::nav_panel(
+            title = "Cumulative incidence (plot)",
+            bslib::card(
+              full_screen = TRUE,
+              shiny::plotOutput("competing_plot")
             )
           )
         )
@@ -1432,8 +1287,8 @@ ui <- bslib::page_navbar(
       )
     ),
     bslib::nav_panel(
-      title = "<result_type>",
-      icon = shiny::icon("folder"),
+      title = "Compare",
+      icon = shiny::icon("minimize"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           shinyWidgets::pickerInput(
@@ -1445,106 +1300,18 @@ ui <- bslib::page_navbar(
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "discontinuation_cohort_name",
-            label = "Cohort name",
-            choices = choices$discontinuation_cohort_name,
-            selected = selected$discontinuation_cohort_name,
+            inputId = "discontinuation_method",
+            label = "Method",
+            choices = methods,
+            selected = methods,
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "discontinuation_initial_state",
-            label = "Initial state",
-            choices = choices$discontinuation_initial_state,
-            selected = selected$discontinuation_initial_state,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_prior_heart_failure",
-            label = "Prior heart failure",
-            choices = choices$discontinuation_prior_heart_failure,
-            selected = selected$discontinuation_prior_heart_failure,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_variable_name",
-            label = "Variable name",
-            choices = choices$discontinuation_variable_name,
-            selected = selected$discontinuation_variable_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_estimate_name",
-            label = "Estimate name",
-            choices = choices$discontinuation_estimate_name,
-            selected = selected$discontinuation_estimate_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_cohort_survival_version",
-            label = "Cohort survival version",
-            choices = choices$discontinuation_cohort_survival_version,
-            selected = selected$discontinuation_cohort_survival_version,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_cohort_table_name",
-            label = "Cohort table name",
-            choices = choices$discontinuation_cohort_table_name,
-            selected = selected$discontinuation_cohort_table_name,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_competing_outcome",
-            label = "Competing outcome",
-            choices = choices$discontinuation_competing_outcome,
-            selected = selected$discontinuation_competing_outcome,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_estimate_gap",
-            label = "Estimate gap",
-            choices = choices$discontinuation_estimate_gap,
-            selected = selected$discontinuation_estimate_gap,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_event_gap",
-            label = "Event gap",
-            choices = choices$discontinuation_event_gap,
-            selected = selected$discontinuation_event_gap,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_follow_up_days",
-            label = "Follow up days",
-            choices = choices$discontinuation_follow_up_days,
-            selected = selected$discontinuation_follow_up_days,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_state_hierarchy",
-            label = "State hierarchy",
-            choices = choices$discontinuation_state_hierarchy,
-            selected = selected$discontinuation_state_hierarchy,
-            multiple = TRUE,
-            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-          ),
-          shinyWidgets::pickerInput(
-            inputId = "discontinuation_state_step",
-            label = "State step",
-            choices = choices$discontinuation_state_step,
-            selected = selected$discontinuation_state_step,
+            inputId = "discontinuation_gap",
+            label = "Gap",
+            choices = gaps,
+            selected = selectedGaps,
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
@@ -1552,95 +1319,26 @@ ui <- bslib::page_navbar(
         ),
         bslib::navset_card_tab(
           bslib::nav_panel(
-            title = "Tidy",
+            title = "Explore",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shiny::downloadButton(outputId = "discontinuation_tidy_download", label = "Download csv")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  shinyWidgets::pickerInput(
-                    inputId = "discontinuation_tidy_columns",
-                    label = "Columns",
-                    choices = c("cdm_name", "cohort_name", "initial_state", "prior_heart_failure", "time", "cohort_survival_version", "cohort_table_name", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "state_hierarchy", "state_step", "variable_name", "variable_level"),
-                    selected = c("cdm_name", "cohort_name", "initial_state", "prior_heart_failure", "time", "variable_name", "variable_level"),
-                    multiple = TRUE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::checkboxInput(
-                    inputId = "discontinuation_tidy_pivot_estimates",
-                    label = "Pivot estimates",
-                    value = TRUE
-                  ),
-                  position = "right"
-                ),
-                DT::DTOutput("discontinuation_tidy") |>
-                  shinycssloaders::withSpinner()
-              )
+              reactable::reactableOutput("discontinuation_explore")
             )
           ),
           bslib::nav_panel(
-            title = "Table",
+            title = "Plot",
             bslib::card(
               full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "discontinuation_table_format",
-                    label = "Format",
-                    choices = c("docx", "png", "pdf", "html"),
-                    selected = "docx",
-                    multiple = FALSE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::downloadButton(outputId = "discontinuation_table_download", label = "Download table")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "None",
-                      labels = c("cdm_name", "cohort_name", "initial_state", "prior_heart_failure", "time", "cohort_survival_version", "cohort_table_name", "competing_outcome", "estimate_gap", "event_gap", "follow_up_days", "state_hierarchy", "state_step", "variable_name", "variable_level", "estimate_name"),
-                      input_id = "discontinuation_table_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Header",
-                      labels = character(),
-                      input_id = "discontinuation_table_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Group columns",
-                      labels = character(),
-                      input_id = "discontinuation_table_group_column"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Hide",
-                      labels = character(),
-                      input_id = "discontinuation_table_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("discontinuation_table") |>
-                  shinycssloaders::withSpinner()
-              )
+              shiny::plotOutput("discontinuation_plot")
             )
           )
         )
       )
     )
   ),
+  bslib::nav_spacer(),
   bslib::nav_panel(
-    title = "Logs",
+    title = "",
     icon = shiny::icon("clipboard-list"),
     bslib::navset_card_tab(
       bslib::nav_panel(
@@ -1676,7 +1374,6 @@ ui <- bslib::page_navbar(
       )
     )
   ),
-  bslib::nav_spacer(),
   bslib::nav_item(
     bslib::popover(
       shiny::icon("download"),

@@ -460,18 +460,15 @@ visualiseDataSourceDescription <- function() {
   
   do.call(bslib::navset_card_tab, args = panels)
 }
-
 dataSources <- function() {
   DataSourceDescriptions::importDataSourceDescription(path = here::here("data", "dataSourceDescriptions"), type = "json") |>
     suppressMessages()
 }
-
 dataSourceMarkdownHtml <- function(description) {
   dataSourceMarkdown(description) |>
     commonmark::markdown_html() |>
     shiny::HTML()
 }
-
 dataSourceMarkdown <- function(description) {
   c(
     dataSourceSectionMarkdown(
@@ -492,7 +489,6 @@ dataSourceMarkdown <- function(description) {
   ) |>
     paste(collapse = "\n\n")
 }
-
 dataSourceSectionMarkdown <- function(title, section, fields) {
   fieldNames <- DataSourceDescriptions:::dataSourceDescriptionFields()[[section]]
   fieldNames <- c(fieldNames$required, fieldNames$optional)
@@ -505,14 +501,12 @@ dataSourceSectionMarkdown <- function(title, section, fields) {
   ) |>
     paste(collapse = "\n\n")
 }
-
 dataSourceFieldMarkdown <- function(field, value) {
   paste0(
     "**", prettyDataSourceField(field), "**: ",
     ifelse(is.na(value), "*Not available*", linkMarkdownUrls(value))
   )
 }
-
 prettyDataSourceField <- function(field) {
   field |>
     stringr::str_replace_all("_", " ") |>
@@ -523,7 +517,6 @@ prettyDataSourceField <- function(field) {
       "\\bHma Ema\\b" = "HMA-EMA"
     ))
 }
-
 linkMarkdownUrls <- function(value) {
   value <- as.character(value)
   gsub(
