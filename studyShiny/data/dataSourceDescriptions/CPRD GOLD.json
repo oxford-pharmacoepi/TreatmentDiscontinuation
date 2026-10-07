@@ -4,7 +4,7 @@
     "data_source_acronym": "CPRD GOLD",
     "data_source_website": "https://www.cprd.com/data/primary-care-data/cprd-gold",
     "hma_ema_catalogue": "https://catalogues.ema.europa.eu/data-source/1111113",
-    "main_references": "Sanchez-Santos MT, Axson EL,Dedman D,Delmestri A \"Data Resource Profile Update: CPRD GOLD.\" International journal of epidemiology (2025): 40499193"
+    "main_references": "Sanchez-Santos MT, Axson EL,Dedman D,Delmestri A \"Data Resource Profile Update: CPRD GOLD.\" International journal of epidemiology (2025): 40499193. <https://doi.org/10.1093/ije/dyaf077>"
   },
   "data_collection": {
     "geography": "United Kingdom",

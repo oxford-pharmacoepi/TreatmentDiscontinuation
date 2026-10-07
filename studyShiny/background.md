@@ -23,7 +23,7 @@ The Shiny app is organised into three main panels:
 
 - **Databases** describes the data sources used in this study:
 
-   - *Database Description*: details of each data source.
+   - *Data Source Description*: details of each data source.
    - *Snapshot*: metadata about each data snapshot, including the number of individuals, data extraction date, and vocabulary version.
    - *Observation Period Summary*: a summary of the observation periods.
    
@@ -42,5 +42,7 @@ The Shiny app is organised into three main panels:
    - *Multistate Analysis*: estimates from a multistate analysis.
    - *Compare*: a comparison of results across the different methods.
 
-![](ohdsi_logo.svg){width=100px}
-![](hds_logo.svg){width=100px}
+<div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem;">
+  <img src="ohdsi_logo.svg" alt="OHDSI logo" width="100">
+  <img src="hds_logo.svg" alt="Health Data Sciences logo" width="100">
+</div>
