@@ -25,19 +25,23 @@ ui <- bslib::page_navbar(
     class = "bg-primary",
     theme = "dark"
   ),
+  ## Background ----
   bslib::nav_panel(
     title = "Background",
     icon = shiny::icon("book-atlas"),
     backgroundCard("background.md")
   ),
+  ## Database ----
   bslib::nav_menu(
     title = "Database",
     icon = shiny::icon("list"),
+    ### Data Source Description ----
     bslib::nav_panel(
       title = "Data Source Description",
       icon = shiny::icon("file-lines"),
       visualiseDataSourceDescription()
     ),
+    ### Snapshot ----
     bslib::nav_panel(
       title = "Snapshot",
       icon = shiny::icon("camera"),
@@ -62,6 +66,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Table Snapshot ----
           bslib::nav_panel(
             title = "Table Snapshot",
             bslib::card(
@@ -116,6 +121,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Observation Period Summary ----
     bslib::nav_panel(
       title = "Observation Period Summary",
       icon = shiny::icon("eye"),
@@ -148,6 +154,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Table Observation Period ----
           bslib::nav_panel(
             title = "Table Observation period",
             bslib::card(
@@ -199,6 +206,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Plot Observation Period ----
           bslib::nav_panel(
             title = "Plot Observation period",
             bslib::card(
@@ -283,9 +291,11 @@ ui <- bslib::page_navbar(
       )
     )
   ),
+  ## Characterisation ----
   bslib::nav_menu(
     title = "Characterisation",
     icon = shiny::icon("list"),
+    ### Code Use ----
     bslib::nav_panel(
       title = "Code Use",
       icon = shiny::icon("chart-column"),
@@ -350,6 +360,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Code Use Reactable ----
           bslib::nav_panel(
             title = "Table Code use (reactable)",
             bslib::card(
@@ -358,6 +369,7 @@ ui <- bslib::page_navbar(
                 shinycssloaders::withSpinner()
             )
           ),
+          #### Code Use gt Table ----
           bslib::nav_panel(
             title = "Table Code use (gt)",
             bslib::card(
@@ -412,6 +424,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Cohort Count ----
     bslib::nav_panel(
       title = "Cohort Count",
       icon = shiny::icon("users"),
@@ -444,6 +457,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Cohort Count Table ----
           bslib::nav_panel(
             title = "Table Counts",
             bslib::card(
@@ -495,6 +509,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Cohort Count Plot ----
           bslib::nav_panel(
             title = "Plot Counts",
             bslib::card(
@@ -562,6 +577,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Cohort Attrition ----
     bslib::nav_panel(
       title = "Cohort Attrition",
       icon = shiny::icon("layer-group"),
@@ -594,6 +610,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Cohort Attrition Table ----
           bslib::nav_panel(
             title = "Table Attrition",
             bslib::card(
@@ -645,6 +662,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Cohort Attrition Diagram ----
           bslib::nav_panel(
             title = "Diagram",
             bslib::card(
@@ -681,6 +699,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Cohort Characteristics ----
     bslib::nav_panel(
       title = "Cohort Characteristics",
       icon = shiny::icon("users-gear"),
@@ -729,6 +748,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Cohort Characteristics Table ----
           bslib::nav_panel(
             title = "Table Characteristics",
             bslib::card(
@@ -780,6 +800,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Cohort Characteristics Plot ----
           bslib::nav_panel(
             title = "Plot Characteristics",
             bslib::card(
@@ -856,9 +877,11 @@ ui <- bslib::page_navbar(
       )
     )
   ),
+  ## Discontinuation ----
   bslib::nav_menu(
     title = "Discontinuation",
     icon = shiny::icon("list"),
+    ### Single Survival Estimates ----
     bslib::nav_panel(
       title = "Single survival estimates",
       icon = shiny::icon("folder"),
@@ -891,6 +914,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Summary Statistics ----
           bslib::nav_panel(
             title = "Summary statistics",
             bslib::card(
@@ -898,6 +922,7 @@ ui <- bslib::page_navbar(
               gt::gt_output("single_summary")
             )
           ),
+          #### Number of Events Summary ----
           bslib::nav_panel(
             title = "Number events summary",
             bslib::card(
@@ -905,6 +930,7 @@ ui <- bslib::page_navbar(
               gt::gt_output("single_events")
             )
           ),
+          #### Survival Probability ----
           bslib::nav_panel(
             title = "Survival probability",
             bslib::card(
@@ -912,6 +938,7 @@ ui <- bslib::page_navbar(
               reactable::reactableOutput("single_probbaility")
             )
           ),
+          #### Kaplan-Meier Plot ----
           bslib::nav_panel(
             title = "Kaplan Meier",
             bslib::card(
@@ -929,6 +956,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Competing Survival Estimates ----
     bslib::nav_panel(
       title = "<result_type>",
       icon = shiny::icon("folder"),
@@ -961,6 +989,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Summary Statistics ----
           bslib::nav_panel(
             title = "Summary statistics",
             bslib::card(
@@ -968,6 +997,7 @@ ui <- bslib::page_navbar(
               gt::gt_output("competing_summary")
             )
           ),
+          #### Number of Events Summary ----
           bslib::nav_panel(
             title = "Number events summary",
             bslib::card(
@@ -975,6 +1005,7 @@ ui <- bslib::page_navbar(
               gt::gt_output("competing_events")
             )
           ),
+          #### Cumulative Incidence Table ----
           bslib::nav_panel(
             title = "Cumulative incidence (table)",
             bslib::card(
@@ -982,6 +1013,7 @@ ui <- bslib::page_navbar(
               reactable::reactableOutput("competing_probbaility")
             )
           ),
+          #### Cumulative Incidence Plot ----
           bslib::nav_panel(
             title = "Cumulative incidence (plot)",
             bslib::card(
@@ -992,6 +1024,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Proportion of Patients Covered ----
     bslib::nav_panel(
       title = "Proportion of patients covered",
       icon = shiny::icon("chart-gantt"),
@@ -1032,6 +1065,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Proportion of Patients Covered Table ----
           bslib::nav_panel(
             title = "Table PPC",
             bslib::card(
@@ -1083,6 +1117,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Proportion of Patients Covered Plot ----
           bslib::nav_panel(
             title = "Plot PPC",
             bslib::card(
@@ -1155,6 +1190,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Multistate Probabilities ----
     bslib::nav_panel(
       title = "Summarise multistate probabilities",
       icon = shiny::icon("folder"),
@@ -1211,6 +1247,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Tidy Results ----
           bslib::nav_panel(
             title = "Tidy",
             bslib::card(
@@ -1244,6 +1281,7 @@ ui <- bslib::page_navbar(
               )
             )
           ),
+          #### Multistate Probabilities Table ----
           bslib::nav_panel(
             title = "Table",
             bslib::card(
@@ -1298,6 +1336,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
+    ### Compare Methods ----
     bslib::nav_panel(
       title = "Compare",
       icon = shiny::icon("minimize"),
@@ -1330,6 +1369,7 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Explore Results ----
           bslib::nav_panel(
             title = "Explore",
             bslib::card(
@@ -1337,6 +1377,7 @@ ui <- bslib::page_navbar(
               reactable::reactableOutput("discontinuation_explore")
             )
           ),
+          #### Comparison Plot ----
           bslib::nav_panel(
             title = "Plot",
             bslib::card(
@@ -1349,10 +1390,12 @@ ui <- bslib::page_navbar(
     )
   ),
   bslib::nav_spacer(),
+  ## Logs ----
   bslib::nav_panel(
     title = "",
     icon = shiny::icon("clipboard-list"),
     bslib::navset_card_tab(
+      ### Logs Table ----
       bslib::nav_panel(
         title = "Table Logs",
         bslib::card(
@@ -1376,6 +1419,7 @@ ui <- bslib::page_navbar(
             shinycssloaders::withSpinner()
         )
       ),
+      ### Timing Plot ----
       bslib::nav_panel(
         title = "Plot Timing",
         bslib::card(
