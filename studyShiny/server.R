@@ -116,7 +116,8 @@ server <- function(input, output, session) {
     getCodeUseData() |>
       CodelistGenerator::tableCodeUse(
         type = "reactable",
-        header = "cdm_name"
+        header = "cdm_name",
+        groupColumn = "codelist_name"
       )
   })
   output$code_use_table_react <- reactable::renderReactable({
