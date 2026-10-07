@@ -21,6 +21,10 @@ ui <- bslib::page_navbar(
     "Treatment Discontinuation"
   ),
   theme = bslib::bs_theme(brand = TRUE),
+  navbar_options = bslib::navbar_options(
+    class = "bg-primary",
+    theme = "dark"
+  ),
   bslib::nav_panel(
     title = "Background",
     icon = shiny::icon("book-atlas"),

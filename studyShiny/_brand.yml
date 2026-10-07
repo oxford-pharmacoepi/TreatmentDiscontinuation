@@ -1,84 +1,137 @@
 color:
   palette:
-    white: '#ffffff'
-    darwin_blue: '#003399'
-  foreground: black
-  background: '#ffffff'
-  primary: '#003399'
-logo:
-  path: https://www.ema.europa.eu/sites/default/files/styles/oe_bootstrap_theme_medium_no_crop/public/2024-07/DARWINEU_logo_LARGE.png?itok=NtwlLhSX
-  alt: ~
+    white: "#FFFFFF"
+    canvas: "#F4F7F8"
+    ink: "#172A33"
+    hds_blue: "#165571"
+    hds_cyan: "#1D8DAC"
+    hds_cyan_dark: "#176F84"
+    ice: "#DCEFF4"
+    mist: "#EAF4F6"
+    slate: "#536873"
+    line: "#C7D7DD"
+    green: "#2E7D5B"
+    amber: "#A65F00"
+    orange: "#D55E00"
+    purple: "#7A5AA6"
+    red: "#B23A48"
+  foreground: ink
+  background: canvas
+  primary: hds_blue
+  secondary: slate
+  tertiary: ice
+  success: green
+  info: hds_cyan_dark
+  warning: amber
+  danger: red
+  light: white
+  dark: ink
 typography:
   base:
     family: Calibri
-    size: 11pt
+    size: 1rem
+    line-height: 1.5
+  headings:
+    family: Calibri
+    weight: 600
+    color: hds_blue
   fonts:
   - family: Calibri
     source: system
 defaults:
   shiny:
     theme:
-      preset: flatly
+      preset: shiny
+      defaults:
+        body-bg: "#F4F7F8"
+        body-color: "#172A33"
+        card-bg: "#FFFFFF"
+        card-border-color: "#C7D7DD"
+        border-color: "#C7D7DD"
+        input-border-color: "#C7D7DD"
+        link-hover-color: "#176F84"
+        bslib-enable-shadows: true
   visOmopResults:
     template: system.file("darwinReportRef.docx", package = "visOmopResults")
     plot:
       font_family: Calibri
-      font_size: '11'
+      font_size: "11pt"
       background_color: white
-      header_color: darwin_blue
+      header_color: hds_blue
       header_text_color: white
-      header_text_bold: yes
-      grid_major_color: '#d9d9d9'
-      axis_color: '#252525'
-      border_color: '#595959'
+      header_text_bold: true
+      grid_major_color: line
+      axis_color: ink
+      border_color: line
       legend_position: right
+      color_palette:
+      - hds_blue
+      - orange
+      - purple
+      - green
+      - hds_cyan
+      - red
+      fill_palette:
+      - hds_blue
+      - orange
+      - purple
+      - green
+      - hds_cyan
+      - red
     table:
       font_family: Calibri
-      font_size: '9'
-      border_color: darwin_blue
-      border_width: 1
+      font_size: "9pt"
+      border_color: line
+      border_width: 0.5
       header:
-        background_color: darwin_blue
-        text_bold: yes
+        background_color: hds_blue
+        text_bold: true
         align: center
         text_color: white
         border_color: white
-        font_size: 11
+        font_size: "10pt"
       header_name:
-        background_color: darwin_blue
-        text_bold: yes
+        background_color: hds_cyan_dark
+        text_bold: true
         align: center
         text_color: white
         border_color: white
-        font_size: 11
+        font_size: "10pt"
       header_level:
-        background_color: darwin_blue
-        text_bold: yes
+        background_color: ice
+        text_bold: true
         align: center
-        text_color: white
-        border_color: white
-        font_size: 11
+        text_color: ink
+        border_color: line
+        font_size: "9pt"
       column_name:
-        background_color: darwin_blue
-        text_bold: yes
+        background_color: mist
+        text_bold: true
         align: center
-        text_color: white
-        border_color: white
-        font_size: 11
+        text_color: ink
+        border_color: line
+        font_size: "9pt"
       group_label:
-        background_color: darwin_blue
-        text_bold: yes
-        text_color: white
-        border_color: white
+        background_color: ice
+        text_bold: true
+        text_color: ink
+        border_color: line
       title:
-        text_bold: yes
+        background_color: white
+        text_bold: true
+        text_color: hds_blue
+        border_color: line
         align: center
-        font_size: 15
+        font_size: "15pt"
       subtitle:
-        text_bold: yes
+        background_color: white
+        text_bold: false
+        text_color: slate
+        border_color: line
         align: center
-        font_size: 12
+        font_size: "11pt"
       body:
+        background_color: white
+        text_color: ink
         border_width: 0.5
-        border_color: darwin_blue
-path: /Users/martics/Library/R/arm64/4.4/library/visOmopResults/brand/darwin.yml
+        border_color: line
