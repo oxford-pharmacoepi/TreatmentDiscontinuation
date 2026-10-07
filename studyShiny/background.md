@@ -51,4 +51,9 @@ The Shiny app is organised into three main panels:
     -   *Multistate Analysis*: estimates from a multistate analysis.
     -   *Compare*: a comparison of results across the different methods.
 
-<center>![](ohdsi_logo.svg){width="100px"} ![](hds_logo.svg){width="100px"}</center>
+<center>
+
+![](ohdsi_logo.svg){width=100px}
+![](hds_logo.svg){width=100px}
+
+</center>
