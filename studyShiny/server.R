@@ -169,7 +169,25 @@ server <- function(input, output, session) {
     }
   )
   getSummariseCohortCountPlot <- shiny::reactive({
-    getSummariseCohortCountData() |>
+    plotData <- getSummariseCohortCountData()
+    variables <- unique(plotData$variable_name)
+
+    shiny::validate(
+      shiny::need(
+        length(variables) > 0,
+        "Select one variable with available data to display the plot."
+      ),
+      shiny::need(
+        length(variables) == 1,
+        paste0(
+          "Select exactly one variable to plot. Current selection: ",
+          paste(variables, collapse = ", "),
+          "."
+        )
+      )
+    )
+
+    plotData |>
       CohortCharacteristics::plotCohortCount(
         facet = input$summarise_cohort_count_plot_facet,
         colour = input$summarise_cohort_count_plot_colour
