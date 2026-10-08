@@ -883,7 +883,7 @@ ui <- bslib::page_navbar(
     icon = shiny::icon("list"),
     ### Single Survival Estimates ----
     bslib::nav_panel(
-      title = "Single survival estimates",
+      title = "Single Survival Estimates",
       icon = shiny::icon("folder"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
@@ -914,6 +914,21 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Kaplan-Meier Plot ----
+          bslib::nav_panel(
+            title = "Kaplan Meier",
+            bslib::card(
+              full_screen = TRUE,
+              shiny::radioButtons(
+                inputId = "single_compare",
+                label = "Compare",
+                choices = c("gaps", "prior_heart_failure"),
+                selected = "gaps",
+                inline = TRUE
+              ),
+              shiny::plotOutput("single_plot")
+            )
+          ),
           #### Summary Statistics ----
           bslib::nav_panel(
             title = "Summary statistics",
@@ -937,28 +952,13 @@ ui <- bslib::page_navbar(
               full_screen = TRUE,
               reactable::reactableOutput("single_probbaility")
             )
-          ),
-          #### Kaplan-Meier Plot ----
-          bslib::nav_panel(
-            title = "Kaplan Meier",
-            bslib::card(
-              full_screen = TRUE,
-              shiny::radioButtons(
-                inputId = "single_compare",
-                label = "Compare",
-                choices = c("gaps", "prior_heart_failure"),
-                selected = "gaps",
-                inline = TRUE
-              ),
-              shiny::plotOutput("single_plot")
-            )
           )
         )
       )
     ),
     ### Competing Survival Estimates ----
     bslib::nav_panel(
-      title = "<result_type>",
+      title = "Competing Survival Estimates",
       icon = shiny::icon("folder"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
@@ -989,6 +989,14 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Cumulative Incidence Plot ----
+          bslib::nav_panel(
+            title = "Cumulative incidence (plot)",
+            bslib::card(
+              full_screen = TRUE,
+              shiny::plotOutput("competing_plot")
+            )
+          ),
           #### Summary Statistics ----
           bslib::nav_panel(
             title = "Summary statistics",
@@ -1011,14 +1019,6 @@ ui <- bslib::page_navbar(
             bslib::card(
               full_screen = TRUE,
               reactable::reactableOutput("competing_probbaility")
-            )
-          ),
-          #### Cumulative Incidence Plot ----
-          bslib::nav_panel(
-            title = "Cumulative incidence (plot)",
-            bslib::card(
-              full_screen = TRUE,
-              shiny::plotOutput("competing_plot")
             )
           )
         )
