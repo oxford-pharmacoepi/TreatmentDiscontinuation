@@ -501,46 +501,73 @@ server <- function(input, output, session) {
   # competing_survival -----
   ## get competing_survival data
   getCompetingSurvivalData <- shiny::reactive({
+    pt <- paste0(sprintf("%03i", as.integer(input$competing_survival_gap)), collapse = "|")
     data[["competing_survival"]] |>
       dplyr::filter(
-        .data$cdm_name %in% input$competing_survival_cdm_name,
-        .data$variable_name %in% input$competing_survival_variable_name,
-        .data$estimate_name %in% input$competing_survival_estimate_name
+        .data$cdm_name %in% input$competing_survival_cdm_name
       ) |>
-      omopgenerics::filterGroup(.data$cohort_name %in% input$competing_survival_cohort_name) |>
+      omopgenerics::filterGroup(stringr::str_ends(.data$cohort_name, pt)) |>
       omopgenerics::filterStrata(.data$prior_heart_failure %in% input$competing_survival_prior_heart_failure)
   })
-  getCompetingSurvivalTidy <- shiny::reactive({
-    tidyDT(getCompetingSurvivalData(), input$competing_survival_tidy_columns, input$competing_survival_tidy_pivot_estimates)
-  })
-  output$competing_survival_tidy <- DT::renderDT({
-    getCompetingSurvivalTidy()
-  })
-  output$competing_survival_tidy_download <- shiny::downloadHandler(
-    filename = "tidy_results.csv",
-    content = function(file) {
-      getCompetingSurvivalData() |>
-        omopgenerics::tidy() |>
-        readr::write_csv(file = file)
-    }
-  )
-  getCompetingSurvivalTable <- shiny::reactive({
+  output$competing_summary <- gt::render_gt({
     getCompetingSurvivalData() |>
-      simpleTable(
-        header = input$competing_survival_table_header,
-        group = input$competing_survival_table_group_column,
-        hide = input$competing_survival_table_hide
+      DrugUtilisation::tableDiscontinuationAsSurvival(
+        groupColumn = "cohort_name",
+        header = c("cdm_name", "prior_heart_failure"),
+        hide = c("variable_level", "variable_name", "competing_outcome", "estimate_gap",
+                 "event_gap", "follow_up_days", "cohort_survival_version"),
+        gapSummary = FALSE
       )
   })
-  output$competing_survival_table <- gt::render_gt({
-    getCompetingSurvivalTable()
+  output$competing_events <- gt::render_gt({
+    getCompetingSurvivalData() |>
+      dplyr::filter(stringr::str_starts(.data$variable_name, "Gap")) |>
+      DrugUtilisation::tableDiscontinuationAsSurvival(
+        groupColumn = "cohort_name",
+        header = c("cdm_name", "prior_heart_failure"),
+        hide = c("variable_name", "competing_outcome", "estimate_gap",
+                 "event_gap", "follow_up_days", "cohort_survival_version")
+      )
   })
-  output$competing_survival_table_download <- shiny::downloadHandler(
-    filename = paste0("table.", input$competing_survival_table_format),
-    content = function(file) {
-      gt::gtsave(getCompetingSurvivalTable(), file)
+  output$competing_probbaility <- reactable::renderReactable({
+    getCompetingSurvivalData() |>
+      dplyr::filter(stringr::str_starts(.data$variable_name, "Cumulative")) |>
+      omopgenerics::tidy() |>
+      dplyr::rename("time" = "variable_level") |>
+      dplyr::select(!c(
+        "cohort_survival_version", "competing_outcome", "estimate_gap",
+        "event_gap", "follow_up_days"
+      )) |>
+      reactable::reactable(sortable = TRUE, filterable = TRUE, defaultPageSize = 20)
+  })
+  getCompetingPlotMapping <- shiny::reactive({
+    if (input$competing_compare == "gaps") {
+      list(facet = "prior_heart_failure", colour = "cohort_name")
+    } else {
+      list(facet = "cohort_name", colour = "prior_heart_failure")
     }
-  )
+  })
+  output$competing_discontinuation_plot <- shiny::renderPlot({
+    mapping <- getCompetingPlotMapping()
+    getCompetingSurvivalData() |>
+      dplyr::filter(stringr::str_ends(.data$variable_name, stringr::fixed("(Outcome)"))) |>
+      DrugUtilisation::plotDiscontinuationAsSurvival(
+        facet = mapping$facet,
+        colour = mapping$colour
+      ) +
+      ggplot2::theme(legend.position = "top")
+  })
+  output$competing_death_plot <- shiny::renderPlot({
+    mapping <- getCompetingPlotMapping()
+    getCompetingSurvivalData() |>
+      dplyr::filter(stringr::str_ends(.data$variable_name, stringr::fixed("(Competing outcome)"))) |>
+      DrugUtilisation::plotDiscontinuationAsSurvival(
+        facet = mapping$facet,
+        colour = mapping$colour
+      ) +
+      ggplot2::theme(legend.position = "top") +
+      ggplot2::coord_cartesian(ylim = c(0, 0.12))
+  })
 
   # discontinuation -----
   ## get discontinuation data

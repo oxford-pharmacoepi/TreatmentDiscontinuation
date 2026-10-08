@@ -884,7 +884,7 @@ ui <- bslib::page_navbar(
     ### Single Survival Estimates ----
     bslib::nav_panel(
       title = "Single Survival Estimates",
-      icon = shiny::icon("folder"),
+      icon = shiny::icon("chart-line"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           shinyWidgets::pickerInput(
@@ -959,7 +959,7 @@ ui <- bslib::page_navbar(
     ### Competing Survival Estimates ----
     bslib::nav_panel(
       title = "Competing Survival Estimates",
-      icon = shiny::icon("folder"),
+      icon = shiny::icon("code-branch"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           shinyWidgets::pickerInput(
@@ -971,7 +971,7 @@ ui <- bslib::page_navbar(
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           shinyWidgets::pickerInput(
-            inputId = "single_survival_gap",
+            inputId = "competing_survival_gap",
             label = "Gap",
             choices = gaps,
             selected = selectedGaps,
@@ -994,7 +994,24 @@ ui <- bslib::page_navbar(
             title = "Cumulative incidence (plot)",
             bslib::card(
               full_screen = TRUE,
-              shiny::plotOutput("competing_plot")
+              shiny::radioButtons(
+                inputId = "competing_compare",
+                label = "Compare",
+                choices = c("gaps", "prior_heart_failure"),
+                selected = "gaps",
+                inline = TRUE
+              ),
+              bslib::layout_columns(
+                bslib::card(
+                  bslib::card_header("Cumulative incidence of discontinuation"),
+                  shiny::plotOutput("competing_discontinuation_plot")
+                ),
+                bslib::card(
+                  bslib::card_header("Cumulative incidence of death"),
+                  shiny::plotOutput("competing_death_plot")
+                ),
+                col_widths = c(6, 6)
+              )
             )
           ),
           #### Summary Statistics ----
@@ -1027,7 +1044,7 @@ ui <- bslib::page_navbar(
     ### Proportion of Patients Covered ----
     bslib::nav_panel(
       title = "Proportion of patients covered",
-      icon = shiny::icon("chart-gantt"),
+      icon = shiny::icon("percent"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           shinyWidgets::pickerInput(
@@ -1168,7 +1185,7 @@ ui <- bslib::page_navbar(
                     inputId = "summarise_proportion_of_patients_covered_plot_facet",
                     label = "Facet",
                     choices = c("cdm_name", "cohort_name", "prior_heart_failure"),
-                    selected = "cohort_name",
+                    selected = "prior_heart_failure",
                     multiple = TRUE,
                     options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
                   ),
@@ -1176,7 +1193,7 @@ ui <- bslib::page_navbar(
                     inputId = "summarise_proportion_of_patients_covered_plot_colour",
                     label = "Colour",
                     choices = c("cdm_name", "cohort_name", "prior_heart_failure"),
-                    selected = "prior_heart_failure",
+                    selected = "cohort_name",
                     multiple = TRUE,
                     options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
                   ),
@@ -1193,7 +1210,7 @@ ui <- bslib::page_navbar(
     ### Multistate Probabilities ----
     bslib::nav_panel(
       title = "Summarise multistate probabilities",
-      icon = shiny::icon("folder"),
+      icon = shiny::icon("diagram-project"),
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           shinyWidgets::pickerInput(
