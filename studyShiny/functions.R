@@ -262,9 +262,9 @@ simpleTable <- function(result,
     visOmopResults::formatTable(groupColumn = group)
   return(result)
 }
-tidyDT <- function(x,
-                   columns,
-                   pivotEstimates) {
+tidyReactable <- function(x,
+                          columns,
+                          pivotEstimates) {
   groupColumns <- omopgenerics::groupColumns(x)
   strataColumns <- omopgenerics::strataColumns(x)
   additionalColumns <- omopgenerics::additionalColumns(x)
@@ -300,23 +300,20 @@ tidyDT <- function(x,
   x <- x |>
     dplyr::select(dplyr::all_of(unname(unlist(cols))))
 
-  # prepare the header
-  container <- shiny::tags$table(
-    class = "display",
-    shiny::tags$thead(
-      purrr::imap(cols, \(x, nm) shiny::tags$th(colspan = length(x), nm)) |>
-        shiny::tags$tr(),
-      shiny::tags$tr(purrr::map(unlist(cols), shiny::tags$th))
-    )
-  )
+  columnGroups <- purrr::imap(
+    cols,
+    \(columns, name) reactable::colGroup(name = name, columns = columns)
+  ) |>
+    unname()
 
-  # create DT table
-  DT::datatable(
+  reactable::reactable(
     data = x,
-    filter = "top",
-    container = container,
-    rownames = FALSE,
-    options = list(searching = FALSE)
+    columnGroups = columnGroups,
+    filterable = TRUE,
+    searchable = TRUE,
+    sortable = TRUE,
+    defaultPageSize = 20,
+    showPageSizeOptions = TRUE
   )
 }
 prepareResult <- function(result, resultList) {
@@ -434,6 +431,31 @@ getSelected <- function(choices) {
 
     vals
   })
+}
+prepareMultistatePlotData <- function(result) {
+  result |>
+    omopgenerics::tidy() |>
+    dplyr::filter(stringr::str_starts(.data$initial_state, "beta_blockers_")) |>
+    dplyr::mutate(
+      gap = as.character(as.integer(stringr::str_extract(.data$initial_state, "[0-9]+$"))),
+      variable_name = dplyr::case_when(
+        stringr::str_starts(.data$variable_name, "prob_beta_blockers_") ~ "prob_Treated",
+        stringr::str_starts(.data$variable_name, "prob_untreated_") ~ "prob_Untreated",
+        .data$variable_name == "prob_death_cohort" ~ "prob_Death",
+        TRUE ~ NA_character_
+      )
+    ) |>
+    dplyr::filter(!is.na(.data$variable_name)) |>
+    dplyr::select(
+      "cdm_name", "gap", "prior_heart_failure", "variable_name",
+      "variable_level", "probability"
+    ) |>
+    omopgenerics::transformToSummarisedResult(
+      group = "gap",
+      strata = "prior_heart_failure",
+      estimates = "probability"
+    ) |>
+    suppressMessages()
 }
 renderInteractivePlot <- function(plt, interactive) {
   if (interactive) {

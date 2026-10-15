@@ -8,7 +8,6 @@ library(DiagrammeR)
 library(DiagrammeRsvg)
 library(dplyr)
 library(DrugUtilisation)
-library(DT)
 library(ggplot2)
 library(gt)
 library(markdown)
@@ -41,6 +40,15 @@ if (!file.exists(fileData)) {
 # load shiny data
 load(fileData)
 
+# source functions
+source(file.path(getwd(), "functions.R"))
+
+if (is.null(data$summarise_multistate_probabilities_plot)) {
+  data$summarise_multistate_probabilities_plot <- prepareMultistatePlotData(
+    data$summarise_multistate_probabilities
+  )
+}
+
 gaps <- choices$summarise_cohort_count_cohort_name |>
   purrr::keep(\(x) stringr::str_starts(x, "beta_blockers_")) |>
   stringr::str_remove("beta_blockers_") |>
@@ -49,6 +57,10 @@ gaps <- choices$summarise_cohort_count_cohort_name |>
   sort() |>
   sprintf(fmt = "%i")
 selectedGaps <- gaps
+defaultComparisonGaps <- intersect(c("0", "30", "60", "120"), gaps)
+if (length(defaultComparisonGaps) == 0) {
+  defaultComparisonGaps <- utils::head(gaps, 4)
+}
 methods <- c("survival", "competing_risks", "proportion_of_patients_covered", "multistate")
 
 data$discontinuation <- data$discontinuation |>
@@ -75,13 +87,13 @@ data$discontinuation <- data$discontinuation |>
     ),
     estimate_lower = dplyr::case_when(
       .data$method == "survival" ~ .data$estimate_95CI_lower,
-      .data$method == "competing_risks" ~ 1- .data$estimate_95CI_lower,
+      .data$method == "competing_risks" ~ 1 - .data$estimate_95CI_upper,
       .data$method == "proportion_of_patients_covered" ~ .data$ppc_lower / 100,
       .data$method == "multistate" ~ NA_real_
     ),
     estimate_upper = dplyr::case_when(
       .data$method == "survival" ~ .data$estimate_95CI_upper,
-      .data$method == "competing_risks" ~ 1 - .data$estimate_95CI_upper,
+      .data$method == "competing_risks" ~ 1 - .data$estimate_95CI_lower,
       .data$method == "proportion_of_patients_covered" ~ .data$ppc_upper / 100,
       .data$method == "multistate" ~ NA_real_
     ),
@@ -97,17 +109,13 @@ data$discontinuation <- data$discontinuation |>
       .data$method == "proportion_of_patients_covered" ~ "Proportion of Patients Covered",
       .data$method == "multistate" ~ "Probability"
     ),
-    time = dplyr::case_when(
-      .data$method == "survival" ~ as.numeric(.data$variable_level),
-      .data$method == "competing_risks" ~ as.numeric(.data$variable_level),
-      .data$method == "proportion_of_patients_covered" ~ as.numeric(.data$time),
-      .data$method == "multistate" ~ as.numeric(.data$variable_level)
-    )
+    time = as.numeric(dplyr::if_else(
+      .data$method == "proportion_of_patients_covered",
+      as.character(.data$time),
+      as.character(.data$variable_level)
+    ))
   ) |>
   dplyr::select(
     "cdm_name", "method", "cohort_name", "gap", "prior_heart_failure",
     "variable_name", "time", "estimate", "estimate_lower", "estimate_upper"
   )
-
-# source functions
-source(file.path(getwd(), "functions.R"))

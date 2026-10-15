@@ -407,10 +407,47 @@ server <- function(input, output, session) {
       omopgenerics::filterStrata(.data$prior_heart_failure %in% input$summarise_multistate_probabilities_prior_heart_failure) |>
       omopgenerics::filterSettings(.data$state_hierarchy %in% input$summarise_multistate_probabilities_state_hierarchy)
   })
-  getSummariseMultistateProbabilitiesTidy <- shiny::reactive({
-    tidyDT(getSummariseMultistateProbabilitiesData(), input$summarise_multistate_probabilities_tidy_columns, input$summarise_multistate_probabilities_tidy_pivot_estimates)
+  getSummariseMultistateProbabilitiesPlotData <- shiny::reactive({
+    data[["summarise_multistate_probabilities_plot"]] |>
+      dplyr::filter(
+        .data$cdm_name %in% input$summarise_multistate_probabilities_cdm_name
+      ) |>
+      omopgenerics::filterGroup(.data$gap %in% input$summarise_multistate_probabilities_plot_gap) |>
+      omopgenerics::filterStrata(
+        .data$prior_heart_failure %in% input$summarise_multistate_probabilities_prior_heart_failure
+      )
   })
-  output$summarise_multistate_probabilities_tidy <- DT::renderDT({
+  getSummariseMultistateProbabilitiesPlot <- shiny::reactive({
+    plotData <- getSummariseMultistateProbabilitiesPlotData()
+    shiny::validate(
+      shiny::need(nrow(plotData) > 0, "Select at least one treatment gap with available data.")
+    )
+    OmopMultistate::plotMultistateProbabilities(
+      plotData,
+      timeScale = input$summarise_multistate_probabilities_plot_time_scale
+    )
+  })
+  output$summarise_multistate_probabilities_plot <- shiny::renderUI({
+    x <- getSummariseMultistateProbabilitiesPlot()
+    renderInteractivePlot(x, input$summarise_multistate_probabilities_plot_interactive)
+  })
+  output$summarise_multistate_probabilities_plot_download <- shiny::downloadHandler(
+    filename = "plot_multistate_probabilities.png",
+    content = function(file) {
+      ggplot2::ggsave(
+        filename = file,
+        plot = getSummariseMultistateProbabilitiesPlot(),
+        width = as.numeric(input$summarise_multistate_probabilities_plot_width),
+        height = as.numeric(input$summarise_multistate_probabilities_plot_height),
+        units = input$summarise_multistate_probabilities_plot_units,
+        dpi = as.numeric(input$summarise_multistate_probabilities_plot_dpi)
+      )
+    }
+  )
+  getSummariseMultistateProbabilitiesTidy <- shiny::reactive({
+    tidyReactable(getSummariseMultistateProbabilitiesData(), input$summarise_multistate_probabilities_tidy_columns, input$summarise_multistate_probabilities_tidy_pivot_estimates)
+  })
+  output$summarise_multistate_probabilities_tidy <- reactable::renderReactable({
     getSummariseMultistateProbabilitiesTidy()
   })
   output$summarise_multistate_probabilities_tidy_download <- shiny::downloadHandler(
@@ -480,7 +517,12 @@ server <- function(input, output, session) {
         "cohort_survival_version", "competing_outcome", "estimate_gap",
         "event_gap", "follow_up_days"
       )) |>
-      reactable::reactable(sortable = TRUE, filterable = TRUE, defaultPageSize = 20)
+      reactable::reactable(
+        sortable = TRUE,
+        filterable = TRUE,
+        searchable = TRUE,
+        defaultPageSize = 20
+      )
   })
   output$single_plot <- shiny::renderPlot({
     if (input$single_compare == "gaps") {
@@ -538,7 +580,12 @@ server <- function(input, output, session) {
         "cohort_survival_version", "competing_outcome", "estimate_gap",
         "event_gap", "follow_up_days"
       )) |>
-      reactable::reactable(sortable = TRUE, filterable = TRUE, defaultPageSize = 20)
+      reactable::reactable(
+        sortable = TRUE,
+        filterable = TRUE,
+        searchable = TRUE,
+        defaultPageSize = 20
+      )
   })
   getCompetingPlotMapping <- shiny::reactive({
     if (input$competing_compare == "gaps") {
@@ -570,18 +617,252 @@ server <- function(input, output, session) {
   })
 
   # discontinuation -----
+  shiny::observeEvent(input$compare, {
+    if (input$compare == "prior_heart_failure") {
+      selectedGap <- if (length(input$discontinuation_gap) == 1) {
+        input$discontinuation_gap
+      } else if ("90" %in% gaps) {
+        "90"
+      } else {
+        gaps[[1]]
+      }
+      shinyWidgets::updatePickerInput(
+        session,
+        inputId = "discontinuation_gap",
+        selected = selectedGap
+      )
+      shinyWidgets::updatePickerInput(
+        session,
+        inputId = "discontinuation_prior_heart_failure",
+        selected = choices$discontinuation_prior_heart_failure
+      )
+    } else {
+      shinyWidgets::updatePickerInput(
+        session,
+        inputId = "discontinuation_gap",
+        selected = defaultComparisonGaps
+      )
+      shinyWidgets::updatePickerInput(
+        session,
+        inputId = "discontinuation_prior_heart_failure",
+        selected = if ("overall" %in% choices$discontinuation_prior_heart_failure) {
+          "overall"
+        } else {
+          choices$discontinuation_prior_heart_failure[[1]]
+        }
+      )
+    }
+  }, ignoreInit = TRUE)
+
   ## get discontinuation data
   getDiscontinuationData <- shiny::reactive({
     data[["discontinuation"]] |>
       dplyr::filter(
         .data$cdm_name %in% input$discontinuation_cdm_name,
         .data$gap %in% input$discontinuation_gap,
-        .data$method %in% input$discontinuation_method
+        .data$method %in% input$discontinuation_method,
+        .data$prior_heart_failure %in% input$discontinuation_prior_heart_failure
       )
   })
   output$discontinuation_explore <- reactable::renderReactable({
     getDiscontinuationData() |>
-      reactable::reactable(filterable = TRUE)
+      reactable::reactable(filterable = TRUE, searchable = TRUE)
   })
-  
+  output$discontinuation_plot <- shiny::renderPlot({
+    shiny::validate(
+      shiny::need(length(input$discontinuation_method) > 0, "Select at least one method."),
+      shiny::need(length(input$discontinuation_cdm_name) == 1, "Select exactly one CDM name for the comparison plot."),
+      shiny::need(length(input$discontinuation_gap) > 0, "Select at least one treatment gap."),
+      shiny::need(length(input$discontinuation_prior_heart_failure) > 0, "Select at least one prior-heart-failure category.")
+    )
+
+    if (input$compare == "prior_heart_failure") {
+      comparisonColour <- "prior_heart_failure"
+      legendTitle <- "Prior heart failure"
+      shiny::validate(
+        shiny::need(length(input$discontinuation_gap) == 1, "Select exactly one gap when comparing prior heart failure."),
+        shiny::need(length(input$discontinuation_prior_heart_failure) <= 3, "Select no more than three prior-heart-failure categories.")
+      )
+    } else {
+      comparisonColour <- "cohort_name"
+      legendTitle <- "Gap (days)"
+      shiny::validate(
+        shiny::need(
+          length(input$discontinuation_prior_heart_failure) == 1,
+          "Select exactly one prior-heart-failure category when comparing gaps."
+        )
+      )
+    }
+
+    gapPattern <- paste0(
+      sprintf("%03i", as.integer(input$discontinuation_gap)),
+      collapse = "|"
+    )
+    filterComparisonData <- function(result) {
+      result |>
+        dplyr::filter(.data$cdm_name %in% input$discontinuation_cdm_name) |>
+        omopgenerics::filterGroup(stringr::str_ends(.data$cohort_name, gapPattern)) |>
+        omopgenerics::filterStrata(
+          .data$prior_heart_failure %in% input$discontinuation_prior_heart_failure
+        )
+    }
+    formatGap <- function(value) {
+      gap <- suppressWarnings(as.integer(stringr::str_extract(value, "[0-9]+$")))
+      dplyr::if_else(is.na(gap), value, as.character(gap))
+    }
+    addComparisonScale <- function(plot, ribbon = TRUE) {
+      plot <- plot +
+        ggplot2::scale_colour_discrete(
+          name = legendTitle,
+          labels = if (input$compare == "gaps") formatGap else ggplot2::waiver()
+        )
+      if (ribbon) {
+        plot <- plot +
+          ggplot2::scale_fill_discrete(
+            name = legendTitle,
+            labels = if (input$compare == "gaps") formatGap else ggplot2::waiver()
+          )
+      }
+      plot
+    }
+
+    panels <- list()
+
+    if ("survival" %in% input$discontinuation_method) {
+      survivalPlot <- filterComparisonData(data$single_survival) |>
+        DrugUtilisation::plotDiscontinuationAsSurvival(
+          facet = "cdm_name",
+          colour = comparisonColour
+        )
+      survivalPlot$data <- survivalPlot$data |>
+        dplyr::mutate(analysis = "Survival analysis")
+      survivalPlot <- survivalPlot +
+        ggplot2::facet_wrap(~analysis) +
+        ggplot2::labs(title = "A")
+      panels$survival <- addComparisonScale(survivalPlot)
+    }
+
+    if ("competing_risks" %in% input$discontinuation_method) {
+      competingPlot <- filterComparisonData(data$competing_survival) |>
+        DrugUtilisation::plotDiscontinuationAsSurvival(
+          facet = "variable_name",
+          colour = comparisonColour
+        )
+      competingPlot$data <- competingPlot$data |>
+        dplyr::mutate(
+          competing_risk = factor(
+            dplyr::if_else(
+              stringr::str_detect(.data$variable_name, stringr::fixed("(Competing outcome)")),
+              "Competing risk (death)",
+              "Competing risk (discontinuation)"
+            ),
+            levels = c(
+              "Competing risk (discontinuation)",
+              "Competing risk (death)"
+            )
+          )
+        )
+      competingYScale <- competingPlot$scales$get_scales("y")
+      competingYScale$limits <- NULL
+      competingPlot <- competingPlot +
+        ggplot2::facet_wrap(~competing_risk, scales = "free_y") +
+        ggplot2::labs(title = "B")
+      panels$competing_risks <- addComparisonScale(competingPlot)
+    }
+
+    if ("proportion_of_patients_covered" %in% input$discontinuation_method) {
+      ppcPlot <- filterComparisonData(data$summarise_proportion_of_patients_covered) |>
+        DrugUtilisation::plotProportionOfPatientsCovered(
+          facet = "cdm_name",
+          colour = comparisonColour,
+          ribbon = FALSE
+        )
+      ppcPlot$data <- ppcPlot$data |>
+        dplyr::mutate(analysis = "Proportion of patients covered")
+      ppcPlot <- ppcPlot +
+        ggplot2::facet_wrap(~analysis) +
+        ggplot2::labs(title = "C")
+      panels$proportion_of_patients_covered <- addComparisonScale(
+        ppcPlot,
+        ribbon = FALSE
+      )
+    }
+
+    if ("multistate" %in% input$discontinuation_method) {
+      multistateData <- data$summarise_multistate_probabilities_plot |>
+        dplyr::filter(.data$cdm_name %in% input$discontinuation_cdm_name) |>
+        omopgenerics::filterGroup(.data$gap %in% input$discontinuation_gap) |>
+        omopgenerics::filterStrata(
+          .data$prior_heart_failure %in% input$discontinuation_prior_heart_failure
+        )
+
+      if (input$compare == "gaps") {
+        multistatePlots <- input$discontinuation_gap |>
+          purrr::imap(\(selectedGap, plotIndex) {
+            multistatePlot <- multistateData |>
+              omopgenerics::filterGroup(.data$gap == selectedGap) |>
+              OmopMultistate::plotMultistateProbabilities(timeScale = "days")
+            multistatePlot$data <- multistatePlot$data |>
+              dplyr::mutate(
+                analysis = paste0(
+                  "Multistate probabilities (gap ", selectedGap, " days)"
+                )
+              )
+            multistatePlot +
+              ggplot2::facet_wrap(~analysis) +
+              ggplot2::labs(title = if (plotIndex == 1) "D" else NULL)
+          })
+        numberGaps <- length(multistatePlots)
+        multistateColumns <- dplyr::case_when(
+          numberGaps <= 3 ~ numberGaps,
+          numberGaps == 4 ~ 2,
+          TRUE ~ 3
+        )
+        multistatePanel <- patchwork::wrap_plots(
+          multistatePlots,
+          ncol = multistateColumns,
+          guides = "collect"
+        )
+      } else {
+        multistatePanel <- OmopMultistate::plotMultistateProbabilities(
+          multistateData,
+          timeScale = "days"
+        )
+        multistatePanel$data <- multistatePanel$data |>
+          dplyr::mutate(
+            analysis = paste0(
+              "Multistate probabilities (gap ", input$discontinuation_gap,
+              " days; prior heart failure: ", .data$prior_heart_failure, ")"
+            )
+          )
+        multistatePanel <- multistatePanel +
+          ggplot2::facet_wrap(~analysis) +
+          ggplot2::labs(title = "D")
+      }
+      panels$multistate <- multistatePanel
+    }
+
+    patchwork::wrap_plots(panels, ncol = 1) &
+      ggplot2::theme(
+        legend.position = "top",
+        plot.title = ggplot2::element_text(face = "bold")
+      )
+  }, height = function() {
+    selectedMethods <- if (is.null(input$discontinuation_method)) {
+      character()
+    } else {
+      input$discontinuation_method
+    }
+    baseHeight <- 400 * sum(selectedMethods != "multistate")
+    if (!"multistate" %in% selectedMethods) {
+      return(max(450, baseHeight))
+    }
+    if (isTRUE(input$compare == "gaps")) {
+      numberGaps <- max(1, length(input$discontinuation_gap))
+      multistateColumns <- if (numberGaps <= 3) numberGaps else if (numberGaps == 4) 2 else 3
+      return(baseHeight + 400 * ceiling(numberGaps / multistateColumns))
+    }
+    baseHeight + 500
+  })
+
 }

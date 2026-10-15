@@ -1082,58 +1082,6 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
-          #### Proportion of Patients Covered Table ----
-          bslib::nav_panel(
-            title = "Table PPC",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_proportion_of_patients_covered_table_format",
-                    label = "Format",
-                    choices = c("docx", "png", "pdf", "html"),
-                    selected = "docx",
-                    multiple = FALSE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::downloadButton(outputId = "summarise_proportion_of_patients_covered_table_download", label = "Download table")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "None",
-                      labels = c("time", "estimate_name"),
-                      input_id = "summarise_proportion_of_patients_covered_table_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Header",
-                      labels = c("cohort_name", "prior_heart_failure"),
-                      input_id = "summarise_proportion_of_patients_covered_table_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Group columns",
-                      labels = "cdm_name",
-                      input_id = "summarise_proportion_of_patients_covered_table_group_column"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Hide",
-                      labels = c("variable_name", "variable_level", "cohort_table_name"),
-                      input_id = "summarise_proportion_of_patients_covered_table_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("summarise_proportion_of_patients_covered_table") |>
-                  shinycssloaders::withSpinner()
-              )
-            )
-          ),
           #### Proportion of Patients Covered Plot ----
           bslib::nav_panel(
             title = "Plot PPC",
@@ -1203,6 +1151,58 @@ ui <- bslib::page_navbar(
                   shinycssloaders::withSpinner()
               )
             )
+          ),
+          #### Proportion of Patients Covered Table ----
+          bslib::nav_panel(
+            title = "Table PPC",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_proportion_of_patients_covered_table_format",
+                    label = "Format",
+                    choices = c("docx", "png", "pdf", "html"),
+                    selected = "docx",
+                    multiple = FALSE,
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::downloadButton(outputId = "summarise_proportion_of_patients_covered_table_download", label = "Download table")
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  sortable::bucket_list(
+                    header = NULL,
+                    sortable::add_rank_list(
+                      text = "None",
+                      labels = c("time", "estimate_name"),
+                      input_id = "summarise_proportion_of_patients_covered_table_none"
+                    ),
+                    sortable::add_rank_list(
+                      text = "Header",
+                      labels = c("cohort_name", "prior_heart_failure"),
+                      input_id = "summarise_proportion_of_patients_covered_table_header"
+                    ),
+                    sortable::add_rank_list(
+                      text = "Group columns",
+                      labels = "cdm_name",
+                      input_id = "summarise_proportion_of_patients_covered_table_group_column"
+                    ),
+                    sortable::add_rank_list(
+                      text = "Hide",
+                      labels = c("variable_name", "variable_level", "cohort_table_name"),
+                      input_id = "summarise_proportion_of_patients_covered_table_hide"
+                    )
+                  ),
+                  position = "right"
+                ),
+                gt::gt_output("summarise_proportion_of_patients_covered_table") |>
+                  shinycssloaders::withSpinner()
+              )
+            )
           )
         )
       )
@@ -1264,9 +1264,76 @@ ui <- bslib::page_navbar(
           position = "left"
         ),
         bslib::navset_card_tab(
-          #### Tidy Results ----
+          #### Multistate Probabilities Plot ----
           bslib::nav_panel(
-            title = "Tidy",
+            title = "Plot",
+            bslib::card(
+              full_screen = TRUE,
+              bslib::card_header(
+                bslib::popover(
+                  shiny::icon("download"),
+                  shiny::numericInput(
+                    inputId = "summarise_multistate_probabilities_plot_width",
+                    label = "Width",
+                    value = 15
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_multistate_probabilities_plot_height",
+                    label = "Height",
+                    value = 15
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_multistate_probabilities_plot_units",
+                    label = "Units",
+                    choices = c("px", "cm", "inch"),
+                    selected = "cm",
+                    multiple = FALSE,
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shiny::numericInput(
+                    inputId = "summarise_multistate_probabilities_plot_dpi",
+                    label = "DPI",
+                    value = 300
+                  ),
+                  shiny::downloadButton(
+                    outputId = "summarise_multistate_probabilities_plot_download",
+                    label = "Download plot"
+                  )
+                ),
+                class = "text-end"
+              ),
+              bslib::layout_sidebar(
+                sidebar = bslib::sidebar(
+                  shinyWidgets::materialSwitch(
+                    inputId = "summarise_multistate_probabilities_plot_interactive",
+                    label = "Interactive",
+                    value = TRUE
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_multistate_probabilities_plot_gap",
+                    label = "Treatment gap (days)",
+                    choices = gaps,
+                    selected = if ("90" %in% gaps) "90" else gaps[[1]],
+                    multiple = TRUE,
+                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+                  ),
+                  shinyWidgets::pickerInput(
+                    inputId = "summarise_multistate_probabilities_plot_time_scale",
+                    label = "Time scale",
+                    choices = c("Years" = "years", "Days" = "days"),
+                    selected = "years",
+                    multiple = FALSE
+                  ),
+                  position = "right"
+                ),
+                shiny::uiOutput("summarise_multistate_probabilities_plot") |>
+                  shinycssloaders::withSpinner()
+              )
+            )
+          ),
+          #### Explore Results ----
+          bslib::nav_panel(
+            title = "Explore probabilities",
             bslib::card(
               full_screen = TRUE,
               bslib::card_header(
@@ -1293,59 +1360,7 @@ ui <- bslib::page_navbar(
                   ),
                   position = "right"
                 ),
-                DT::DTOutput("summarise_multistate_probabilities_tidy") |>
-                  shinycssloaders::withSpinner()
-              )
-            )
-          ),
-          #### Multistate Probabilities Table ----
-          bslib::nav_panel(
-            title = "Table",
-            bslib::card(
-              full_screen = TRUE,
-              bslib::card_header(
-                bslib::popover(
-                  shiny::icon("download"),
-                  shinyWidgets::pickerInput(
-                    inputId = "summarise_multistate_probabilities_table_format",
-                    label = "Format",
-                    choices = c("docx", "png", "pdf", "html"),
-                    selected = "docx",
-                    multiple = FALSE,
-                    options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
-                  ),
-                  shiny::downloadButton(outputId = "summarise_multistate_probabilities_table_download", label = "Download table")
-                ),
-                class = "text-end"
-              ),
-              bslib::layout_sidebar(
-                sidebar = bslib::sidebar(
-                  sortable::bucket_list(
-                    header = NULL,
-                    sortable::add_rank_list(
-                      text = "None",
-                      labels = c("cdm_name", "initial_state", "prior_heart_failure", "cohort_table_name", "follow_up_days", "state_hierarchy", "state_step", "variable_name", "variable_level", "estimate_name"),
-                      input_id = "summarise_multistate_probabilities_table_none"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Header",
-                      labels = character(),
-                      input_id = "summarise_multistate_probabilities_table_header"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Group columns",
-                      labels = character(),
-                      input_id = "summarise_multistate_probabilities_table_group_column"
-                    ),
-                    sortable::add_rank_list(
-                      text = "Hide",
-                      labels = character(),
-                      input_id = "summarise_multistate_probabilities_table_hide"
-                    )
-                  ),
-                  position = "right"
-                ),
-                gt::gt_output("summarise_multistate_probabilities_table") |>
+                reactable::reactableOutput("summarise_multistate_probabilities_tidy") |>
                   shinycssloaders::withSpinner()
               )
             )
@@ -1379,27 +1394,46 @@ ui <- bslib::page_navbar(
             inputId = "discontinuation_gap",
             label = "Gap",
             choices = gaps,
-            selected = selectedGaps,
+            selected = defaultComparisonGaps,
+            multiple = TRUE,
+            options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
+          ),
+          shinyWidgets::pickerInput(
+            inputId = "discontinuation_prior_heart_failure",
+            label = "Prior heart failure",
+            choices = choices$discontinuation_prior_heart_failure,
+            selected = if ("overall" %in% choices$discontinuation_prior_heart_failure) {
+              "overall"
+            } else {
+              choices$discontinuation_prior_heart_failure[[1]]
+            },
             multiple = TRUE,
             options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3")
           ),
           position = "left"
         ),
         bslib::navset_card_tab(
+          #### Comparison Plot ----
+          bslib::nav_panel(
+            title = "Plot",
+            bslib::card(
+              full_screen = TRUE,
+              shiny::radioButtons(
+                inputId = "compare",
+                label = "Compare",
+                choices = c("gaps", "prior_heart_failure"),
+                selected = "gaps",
+                inline = TRUE
+              ),
+              shiny::plotOutput("discontinuation_plot")
+            )
+          ),
           #### Explore Results ----
           bslib::nav_panel(
             title = "Explore",
             bslib::card(
               full_screen = TRUE,
               reactable::reactableOutput("discontinuation_explore")
-            )
-          ),
-          #### Comparison Plot ----
-          bslib::nav_panel(
-            title = "Plot",
-            bslib::card(
-              full_screen = TRUE,
-              shiny::plotOutput("discontinuation_plot")
             )
           )
         )

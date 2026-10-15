@@ -1,10 +1,12 @@
 **Comparing methods to describe treatment persistence after acute myocardial infarction: a beta-blocker use case**
 
+<!--
 Elin Rowlands<sup>1</sup>, Cecilia Campanile<sup>1</sup>, Danielle Newby<sup>1</sup>, Anna Saura-Lazaro<sup>1</sup>, Edward Burn<sup>1</sup>, Daniel Prieto-Alhambra<sup>1</sup>, Martí Català<sup>1,\*</sup>
-
+ 
 <sup>1</sup> Health Data Sciences Section, Nuffield Department of Orthopaedics, Rheumatology and Musculoskeletal Sciences, University of Oxford, Oxford, United Kingdom
-
+ 
 <sup>\*</sup> Corresponding author: [marti.catalasabate\@ndorms.ox.ac.uk](mailto:marti.catalasabate@ndorms.ox.ac.uk)
+-->
 
 #### Abstract
 

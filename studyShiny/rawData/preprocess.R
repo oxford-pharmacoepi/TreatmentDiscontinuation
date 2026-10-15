@@ -18,6 +18,9 @@ source(file.path(getwd(), "functions.R"))
 
 result <- omopgenerics::importSummarisedResult(file.path(getwd(), "rawData"))
 data <- prepareResult(result, resultList)
+data$summarise_multistate_probabilities_plot <- prepareMultistatePlotData(
+  data$summarise_multistate_probabilities
+)
 values <- getValues(result, resultList)
 
 # edit choices and values of interest
