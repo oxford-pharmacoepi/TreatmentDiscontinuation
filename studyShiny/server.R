@@ -829,12 +829,10 @@ server <- function(input, output, session) {
           timeScale = "days"
         )
         multistatePanel$data <- multistatePanel$data |>
-          dplyr::mutate(
-            analysis = paste0(
-              "Multistate probabilities (gap ", input$discontinuation_gap,
-              " days; prior heart failure: ", .data$prior_heart_failure, ")"
-            )
-          )
+          dplyr::mutate(analysis = paste0(
+            "Multistate probabilities (prior heart failure: ", 
+            .data$prior_heart_failure, ")"
+          ))
         multistatePanel <- multistatePanel +
           ggplot2::facet_wrap(~analysis) +
           ggplot2::labs(title = "D")
