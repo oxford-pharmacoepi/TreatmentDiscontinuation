@@ -12,6 +12,7 @@ library(readr)
 library(tools)
 library(tidyr)
 library(ggplot2)
+library(scales)
 
 # discontinuation term
 outcome_terms <- paste0(
