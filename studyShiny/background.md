@@ -23,26 +23,21 @@ Of the included individuals, 2,671 (4.3%) had prior heart failure. In this subgr
 
 The Shiny app is organised into three main panels:
 
--   **Databases** describes the data sources used in this study:
-
-    -   *Data Source Description*: details of each data source.
-    -   *Snapshot*: metadata about each data snapshot, including the number of individuals, data extraction date, and vocabulary version.
-    -   *Observation Period Summary*: a summary of the observation periods.
-
--   **Characterisation** describes the cohorts used in this study:
-
-    -   *Code Use*: a breakdown of how the codelists were used to create the cohorts of interest.
-    -   *Cohort Count*: counts of the study cohorts.
-    -   *Cohort Attrition*: attrition within the study cohorts.
-    -   *Cohort Characteristics*: demographic characteristics of the study cohorts.
-
--   **Discontinuation** presents the different methods used to analyse treatment discontinuation:
-
-    -   *Single Survival Estimates*: estimates from a standard survival analysis.
-    -   *Competing Survival Estimates*: estimates from a competing-risk analysis.
-    -   *Proportion of Patients Covered*: estimates based on the proportion of patients covered.
-    -   *Multistate Analysis*: estimates from a multistate analysis.
-    -   *Compare*: a comparison of results across the different methods.
+- **Databases** describes the data sources used in this study:
+  - *Data Source Description*: details of each data source.
+  - *Snapshot*: metadata about each data snapshot, including the number of individuals, data extraction date, and vocabulary version.
+  - *Observation Period Summary*: a summary of the observation periods.
+- **Characterisation** describes the cohorts used in this study:
+  - *Code Use*: a breakdown of how the codelists were used to create the cohorts of interest.
+  - *Cohort Count*: counts of the study cohorts.
+  - *Cohort Attrition*: attrition within the study cohorts.
+  - *Cohort Characteristics*: demographic characteristics of the study cohorts.
+- **Discontinuation** presents the different methods used to analyse treatment discontinuation:
+  - *Single Survival Estimates*: estimates from a standard survival analysis.
+  - *Competing Survival Estimates*: estimates from a competing-risk analysis.
+  - *Proportion of Patients Covered*: estimates based on the proportion of patients covered.
+  - *Multistate Analysis*: estimates from a multistate analysis.
+  - *Compare*: a comparison of results across the different methods.
 
 #### Study code
 
