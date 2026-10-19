@@ -9,6 +9,9 @@ library(cli)
 library(jsonlite)
 library(here)
 library(readr)
+library(tools)
+library(tidyr)
+library(ggplot2)
 
 # discontinuation term
 outcome_terms <- paste0(
