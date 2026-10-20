@@ -123,7 +123,7 @@ getMethodAbs <- \(i) {
   
   # formatting
   tibble(
-    id = papers$id[i],
+    id = papers$pmid[i],
     survival_analysis = isTRUE(x$survival_analysis),
     competing_risk_survival = isTRUE(x$competing_risk_survival),
     incidence_rates = isTRUE(x$incidence_rates),
