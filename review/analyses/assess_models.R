@@ -78,7 +78,7 @@ models_flags <- runLlm(
   prompt = method_prompt,
   input = select(papers, "pmid", "title", "abstract"),
   type = method_type,
-  nb = 5
+  npb = 5
 )
 
 models_final <- models_flags |>
@@ -102,3 +102,6 @@ attrition <- attritionLine(attrition, papers, "Keep only abstracts considered su
 
 finalDataset <- papers |>
   inner_join(models_final, by = "pmid")
+
+write_csv(attrition, here(outputFolder, "attrition.csv"))
+write_csv(finalDataset, here(outputFolder, "final_dataset.csv"))

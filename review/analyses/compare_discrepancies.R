@@ -1,5 +1,5 @@
 # read reviews
-x <- list.files(path = here("results"), pattern = ".csv$", full.names = TRUE)
+x <- list.files(path = outputFolder, pattern = ".csv$", full.names = TRUE)
 
 name <- basename(path = file_path_sans_ext(x))
 nm <- str_split(string = name, pattern = "_")

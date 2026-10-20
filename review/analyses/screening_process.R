@@ -5,6 +5,11 @@ attrition <- tibble(
   reason = "Initial records"
 )
 
+# 0. Remove records without pmid
+papers <- papers |>
+  filter(!is.na(pmid) & nzchar(pmid))
+attrition <- attritionLine(attrition, papers, "Missing pmid")
+
 # 1. Remove records without title
 papers <- papers |>
   filter(!is.na(title) & nzchar(title))
@@ -60,7 +65,7 @@ title_screening <- runLlm(
   input = select(papers, pmid, title) |>
     mutate(pmid = as.character(pmid)),
   type = screen_type,
-  nb = 25
+  npb = 25
 )
 
 titleExcluded <- title_screening |>
@@ -98,9 +103,9 @@ abstract_screening <- runLlm(
   name = "abstract",
   sp = sp,
   prompt = abstract_prompt,
-  input = select(papers, pmid, abstract),
+  input = select(papers, "pmid", "abstract"),
   type = screen_type,
-  nb = 5
+  npb = 5
 )
 
 abstractInclude <- abstract_screening |>

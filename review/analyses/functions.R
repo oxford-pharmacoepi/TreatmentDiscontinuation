@@ -19,8 +19,8 @@ modelName <- function(key) {
           "gemma3" = "gemma3:27b"
   )
 }
-runLlm <- function(model, nr, name, sp, prompt, input, type, nb) {
-  batches <- split(seq_len(nrow(input)), ceiling(seq_len(nrow(input)) / nb))
+runLlm <- function(model, nr, name, sp, prompt, input, type, npb) {
+  batches <- split(seq_len(nrow(input)), ceiling(seq_len(nrow(input)) / npb))
 
   all_results <- list()
 
@@ -48,7 +48,7 @@ runLlm <- function(model, nr, name, sp, prompt, input, type, nb) {
       }
 
       reviewer_results <- bind_rows(reviewer_results)
-      output_path <- here("results", paste0(name, "_", mod, "_", rev, ".csv"))
+      output_path <- here(outputFolder, paste0("llm_", name, "_", mod, "_", rev, ".csv"))
       write_csv(reviewer_results, file = output_path)
 
       all_results[[paste(mod, rev, sep = "_")]] <- reviewer_results |>
@@ -91,8 +91,16 @@ attemptLlm <- function(model, system_prompt, prompt, type, ids, attempts = 3) {
       return(response)
     } else if (attempt < attempts) {
       cli_inform("Retrying (attempt {attempt + 1L} of {attempts}).")
+      Sys.sleep(60)
     } else {
       cli_abort(c(x = "LLM failed"))
     }
   }
+}
+clean_text <- function(x) {
+  x |>
+    stri_trans_nfkc() |>                   # Normalize Unicode
+    stri_replace_all_regex("\\p{Z}+", " ") |> # Replace Unicode spaces
+    stri_replace_all_regex("\\p{C}+", "") |> # Remove control characters
+    trimws()
 }

@@ -86,7 +86,7 @@ papers <- pmApi2df(records, format = "raw") |>
     doi = "DI"
   ) |>
   mutate(
-    across(where(is.character), str_trim),
+    across(where(is.character), clean_text),
     publication_year = as.integer(publication_year),
     first_author = str_trim(str_split_fixed(authors, ";", 2) [, 1]),
     first_affiliation = str_trim(str_split_fixed(affiliation, ";", 2) [, 1]),
