@@ -134,3 +134,19 @@ ggplot(data = x, mapping = aes(x = name, y = value)) +
   ) +
   scale_y_continuous(labels = label_percent()) +
   coord_flip()
+
+x <- final |>
+  filter(column %in% c("survival_analysis", "proportion_patients_covered", "competing_risk_survival", "multistate_analysis")) |>
+  mutate(value = as.logical(value)) |>
+  filter(sum(as.numeric(value)) > 0, .by = "paper_id") |>
+  pivot_wider(names_from = "column", values_from = "value") |>
+  summarise(across(!"paper_id", \(x) mean(as.numeric(x)))) |>
+  pivot_longer(everything())
+ggplot(data = x, mapping = aes(x = name, y = value)) +
+  geom_col() +
+  geom_text(
+    aes(label = percent(value, accuracy = 0.1)),
+    hjust = -0.1
+  ) +
+  scale_y_continuous(labels = label_percent()) +
+  coord_flip()

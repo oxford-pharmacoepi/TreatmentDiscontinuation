@@ -1,0 +1,3 @@
+[2026-10-20 11:16:24] - Log file created
+[2026-10-20 11:16:31] - Find initial candidates
+[2026-10-20 11:27:16] - Total number of candidates: 1708

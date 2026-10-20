@@ -1,0 +1,4 @@
+[2026-10-20 12:01:07] - Log file created
+[2026-10-20 12:01:13] - Find initial candidates
+[2026-10-20 12:02:08] - Number of candidates: 1708
+[2026-10-20 12:02:16] - Screening process

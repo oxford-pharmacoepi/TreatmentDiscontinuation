@@ -132,7 +132,7 @@ getMethodAbs <- \(i) {
     proportion_days_covered = isTRUE(x$pdc),
     medication_possession_ratio = isTRUE(x$mpr),
     multistate_analysis = isTRUE(x$multistate_analysis),
-    other_methods = !nzchar(trimws(collapse_values(x$other_methods))),
+    other_methods = nzchar(trimws(collapse_values(x$other_methods))),
     method_identified = isTRUE(x$method_identified),
     abstract_sufficient = isTRUE(x$abstract_sufficient)
   )
