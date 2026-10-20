@@ -54,7 +54,7 @@ screen_type <- type_object(
 title_screening <- runLlm(
   model = model,
   nr = numberReviewers,
-  name = "title_screening",
+  name = "title",
   sp = sp,
   prompt = title_prompt,
   input = select(papers, pmid, title) |>
@@ -95,7 +95,7 @@ abstract_prompt <- paste(
 abstract_screening <- runLlm(
   model = model,
   nr = numberReviewers,
-  name = "abstract_screening",
+  name = "abstract",
   sp = sp,
   prompt = abstract_prompt,
   input = select(papers, pmid, abstract),
