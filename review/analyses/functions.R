@@ -20,30 +20,75 @@ modelName <- function(key) {
   )
 }
 runLlm <- function(model, nr, name, sp, prompt, input, type, nb) {
-  batches <- split(input$pmid, ceiling(seq_along(input$pmid)/nb))
-  
+  batches <- split(seq_len(nrow(input)), ceiling(seq_len(nrow(input)) / nb))
+
+  all_results <- list()
+
   for (mod in model) {
     for (rev in seq_len(nr)) {
-      
-      chat <- chat_ollama(model = modelName(mod), system_prompt = sp)
-      output <- list()
+
+      reviewer_results <- list()
+
       for (b in seq_along(batches)) {
-        x <- input |>
-          filter(pmid %in% batches[[b]]) |>
-          toJSON(dataframe = "rows", auto_unbox = TRUE)
-        
-        prompt_b <- paste(prompt, x, sep = "\n")
-        
-        out <- chat$chat_structured(prompt_b, type = type)
-        
-        output[[b]] <- out |>
-          map(\(x) paste0(as.character(x), collapse = ";")) |>
-          as_tibble()
+
+        rows <- batches[[b]]
+        x <- input[rows, , drop = FALSE]
+        x_p <- toJSON(x, dataframe = "rows", auto_unbox = FALSE, na = "null")
+        prompt_b <- paste(prompt, x_p, sep = "\n\n")
+
+        cli_inform("Processing {name}: model {mod}, reviewer {rev}/{nr}, batch {b}/{length(batches)}")
+
+        reviewer_results[[b]] <- attemptLlm(
+          model = modelName(mod),
+          system_prompt = sp,
+          prompt = prompt_b,
+          type = type,
+          ids = x$pmid
+        )
       }
-      output <- output |>
-        bind_rows() |>
-        write_csv(file = paste0("results/", name, "_", mod, "_", rev, ".csv"))
+
+      reviewer_results <- bind_rows(reviewer_results)
+      output_path <- here("results", paste0(name, "_", mod, "_", rev, ".csv"))
+      write_csv(reviewer_results, file = output_path)
+
+      all_results[[paste(mod, rev, sep = "_")]] <- reviewer_results |>
+        mutate(model = mod, reviewer = rev)
     }
   }
-  
+
+  bind_rows(all_results)
+}
+attemptLlm <- function(model, system_prompt, prompt, type, ids, attempts = 3) {
+
+  for (attempt in seq_len(attempts)) {
+
+    chat <- chat_ollama(model = model, system_prompt = system_prompt)
+
+    response <- tryCatch(
+      chat$chat_structured(prompt, type = type),
+      error = function(e) conditionMessage(e)
+    )
+
+    if (!is.character(response)) {
+      response <- tryCatch(
+        as_tibble(response$results),
+        error = function(e) NULL
+      )
+    }
+
+    valid <- !is.character(response) &&
+      "pmid" %in% names(response) &&
+      nrow(response) == length(ids) &&
+      !anyNA(response$pmid) &&
+      !anyDuplicated(as.character(response$pmid)) &&
+      identical(as.character(response$pmid), as.character(ids))
+
+    if (valid) {
+      return(response)
+    } else if (attempt < attempts) {
+      cli_inform("Retrying (attempt {attempt + 1L} of {attempts}).")
+    } else {
+      cli_abort(c(x = "LLM failed"))
+    }
+  }
 }
