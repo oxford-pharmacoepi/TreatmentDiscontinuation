@@ -5,12 +5,22 @@ attrition <- tibble(
   reason = "Initial records"
 )
 
-# 1. Remove records without a title.
+# 1. Remove records without title
 papers <- papers |>
   filter(!is.na(title) & nzchar(title))
 attrition <- attritionLine(attrition, papers, "Missing title")
 
-# 2. Screen titles for whether discontinuation/persistence is a study focus.
+# 2. Remove records without abstract
+papers <- papers |>
+  filter(!is.na(abstract) & nzchar(abstract))
+attrition <- attritionLine(attrition, papers, "Missing abstract")
+
+# 3. Remove records without doi
+papers <- papers |>
+  filter(!is.na(doi) & nzchar(doi))
+attrition <- attritionLine(attrition, papers, "Missing doi")
+
+# 4. Screen titles
 sp <- paste(
   "You are screening records for a systematic review of methods used to analyse",
   "treatment discontinuation or persistence in real-world data.",
@@ -53,34 +63,18 @@ title_screening <- runLlm(
   nb = 25
 )
 
-title_decisions <- title_screening |>
-  count(pmid, screening_decision, name = "votes") |>
-  summarise(
-    screening_decision = if (max(votes) > sum(votes) / 2) {
-      screening_decision[which.max(votes)]
-    } else {
-      "uncertain"
-    },
-    .by = pmid
-  )
-write_csv(title_decisions, here("results", "title_screening_final.csv"))
-
-# Keep uncertain titles for abstract screening to reduce false exclusions.
+titleExcluded <- title_screening |>
+  mutate(screening_decision = if_else(screening_decision == "EXCLUDE", 1, 0)) |>
+  filter(sum(screening_decision) > numberReviewers/2, .by = "pmid") |>
+  pull("pmid") |>
+  unique()
+  
+# eliminate only exclude
 papers <- papers |>
-  mutate(pmid = as.character(pmid)) |>
-  inner_join(
-    filter(title_decisions, screening_decision != "exclude") |>
-      select(pmid),
-    by = "pmid"
-  )
+  filter(!pmid %in% titleExcluded)
 attrition <- attritionLine(attrition, papers, "Excluded at title screening")
 
-# 3. Record missing abstracts
-papers <- papers |>
-  filter(!is.na(abstract) & nzchar(abstract))
-attrition <- attritionLine(attrition, papers, "Missing abstract")
-
-# 4. Screen abstracts using the study objective and reported focus.
+# 5. Screen abstracts using the study objective and reported focus
 abstract_prompt <- paste(
   "The input is a JSON array of records, each with a PMID and abstract.",
   "Screen every abstract independently and use the abstract, not information from",
@@ -109,24 +103,12 @@ abstract_screening <- runLlm(
   nb = 5
 )
 
-abstract_decisions <- abstract_screening |>
-  count(pmid, screening_decision, name = "votes") |>
-  summarise(
-    screening_decision = if (max(votes) > sum(votes) / 2) {
-      screening_decision[which.max(votes)]
-    } else {
-      "uncertain"
-    },
-    .by = pmid
-  )
-write_csv(abstract_decisions, here("results", "abstract_screening_final.csv"))
+abstractInclude <- abstract_screening |>
+  mutate(screening_decision = if_else(screening_decision == "INCLUDE", 1, 0)) |>
+  filter(sum(screening_decision) > numberReviewers/2, .by = "pmid") |>
+  pull("pmid")
 
-# Only consensus includes proceed to method extraction; uncertain records remain
-# in the saved decisions for manual review.
+# eliminate anything that is not include
 papers <- papers |>
-  inner_join(
-    filter(abstract_decisions, screening_decision == "include") |>
-      select(pmid),
-    by = "pmid"
-  )
+  filter(pmid %in% abstractInclude)
 attrition <- attritionLine(attrition, papers, "Excluded or uncertain at abstract screening")
