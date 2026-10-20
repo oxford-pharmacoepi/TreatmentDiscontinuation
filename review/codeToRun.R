@@ -28,3 +28,5 @@ source(here("analyses", "find_candidates.R"))
 logMessage("Screening process")
 source(here("analyses", "screening_process.R"))
 
+logMessage("Assess used models")
+source(here("analyses", "assess_models.R"))

@@ -14,7 +14,7 @@ attritionLine <- function(attrition, papers, reason) {
 }
 modelName <- function(key) {
   switch (key,
-          "qwen3" = "qwen3.8:32b",
+          "qwen3" = "qwen3.8:27b",
           "gpt-oss" = "gpt-oss:20b",
           "gemma3" = "gemma3:27b"
   )
@@ -62,7 +62,11 @@ attemptLlm <- function(model, system_prompt, prompt, type, ids, attempts = 3) {
 
   for (attempt in seq_len(attempts)) {
 
-    chat <- chat_ollama(model = model, system_prompt = system_prompt)
+    chat <- chat_ollama(
+      model = model,
+      system_prompt = system_prompt,
+      params = params(temperature = 0)
+    )
 
     response <- tryCatch(
       chat$chat_structured(prompt, type = type),
