@@ -1,5 +1,5 @@
 # read reviews
-x <- list.files(path = here("results"), pattern = ".csv$", full.names = TRUE)
+x <- list.files(path = here(), pattern = ".csv$", full.names = TRUE)
 
 name <- basename(path = file_path_sans_ext(x))
 nm <- str_split(string = name, pattern = "_")
@@ -60,7 +60,8 @@ agreement <- expand_grid(
   inner_join(
     reviews |>
       rename("reviewer_1" = "reviewer_id", "value_1" = "value"),
-    by = "reviewer_1"
+    by = "reviewer_1",
+    relationship = "many-to-many"
   ) |>
   inner_join(
     reviews |>
@@ -74,6 +75,10 @@ agreement <- expand_grid(
 agreementOverall <- summarise(agreement, agreement = mean(agreement), .by = "group")
 ggplot(data = agreementOverall, mapping = aes(x = group, y = agreement)) +
   geom_col() +
+  geom_text(
+    aes(label = percent(agreement, accuracy = 0.1)),
+    hjust = -0.1
+  ) +
   scale_y_continuous(labels = label_percent()) +
   coord_flip()
 
@@ -81,6 +86,10 @@ ggplot(data = agreementOverall, mapping = aes(x = group, y = agreement)) +
 agreementColumn <- summarise(agreement, agreement = mean(agreement), .by = "column")
 ggplot(data = agreementColumn, mapping = aes(x = column, y = agreement)) +
   geom_col() +
+  geom_text(
+    aes(label = percent(agreement, accuracy = 0.1)),
+    hjust = -0.1
+  ) +
   scale_y_continuous(labels = label_percent()) +
   coord_flip()
 
@@ -92,7 +101,8 @@ agreementPaper <- summarise(agreement, agreement = mean(agreement), .by = "paper
 ggplot(data = agreementPaper, mapping = aes(x = id, y = agreement)) +
   geom_col() +
   scale_y_continuous(labels = label_percent()) +
-  scale_x_continuous(breaks = agreementPaper$id, labels = agreementPaper$paper_id)
+  scale_x_continuous(breaks = agreementPaper$id, labels = agreementPaper$paper_id) +
+  theme(axis.text.x = element_text(angle = 90))
 
 # final review
 final <- reviews |>
