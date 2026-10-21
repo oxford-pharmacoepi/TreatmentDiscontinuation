@@ -62,38 +62,53 @@ attemptLlm <- function(model, system_prompt, prompt, type, ids, attempts = 3) {
 
   for (attempt in seq_len(attempts)) {
 
-    chat <- chat_ollama(
-      model = model,
-      system_prompt = system_prompt,
-      params = params(temperature = 0)
-    )
-
     response <- tryCatch(
-      chat$chat_structured(prompt, type = type),
-      error = function(e) conditionMessage(e)
+      {
+        chat <- chat_ollama(
+          model = model,
+          system_prompt = system_prompt,
+          params = params(temperature = 0.2)
+        )
+        result <- chat$chat_structured(prompt, type = type)
+        as_tibble(result$results)
+      },
+      error = identity
     )
 
-    if (!is.character(response)) {
-      response <- tryCatch(
-        as_tibble(response$results),
-        error = function(e) NULL
+    failure <- if (inherits(response, "error")) {
+      paste("Request or response conversion failed:", conditionMessage(response))
+    } else if (!"pmid" %in% names(response)) {
+      "Response has no pmid column."
+    } else if (nrow(response) != length(ids)) {
+      sprintf("Expected %d records; received %d.", length(ids), nrow(response))
+    } else if (anyNA(response$pmid)) {
+      "Response contains missing PMIDs."
+    } else if (anyDuplicated(as.character(response$pmid))) {
+      "Response contains duplicate PMIDs."
+    } else if (!identical(as.character(response$pmid), as.character(ids))) {
+      browser()
+      sprintf(
+        "PMIDs differ in value or order. Expected: %s. Received: %s.",
+        paste(ids, collapse = ", "),
+        paste(response$pmid, collapse = ", ")
       )
+    } else {
+      NULL
     }
 
-    valid <- !is.character(response) &&
-      "pmid" %in% names(response) &&
-      nrow(response) == length(ids) &&
-      !anyNA(response$pmid) &&
-      !anyDuplicated(as.character(response$pmid)) &&
-      identical(as.character(response$pmid), as.character(ids))
-
-    if (valid) {
+    if (is.null(failure)) {
       return(response)
     } else if (attempt < attempts) {
-      cli_inform("Retrying (attempt {attempt + 1L} of {attempts}).")
-      Sys.sleep(60)
+      cli_inform(c(
+        "Retrying (attempt {attempt + 1L} of {attempts}).",
+        i = "{failure}"
+      ))
+      Sys.sleep(1)
     } else {
-      cli_abort(c(x = "LLM failed"))
+      cli_abort(c(
+        x = "LLM failed for model {model} after {attempts} attempts.",
+        i = "{failure}"
+      ))
     }
   }
 }

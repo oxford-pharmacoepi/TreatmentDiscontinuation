@@ -1,6 +1,7 @@
 
 x <- finalDataset |>
-  summarise(across(is.logical, \(x) mean(as.numeric(x)))) |>
+  select(!c("abstract_sufficient", "method_identified")) |>
+  summarise(across(where(is.logical), \(x) mean(as.numeric(x)))) |>
   pivot_longer(everything())
 
 ggplot(data = x, mapping = aes(x = name, y = value)) +

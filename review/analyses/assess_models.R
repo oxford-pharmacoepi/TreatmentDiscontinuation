@@ -84,7 +84,7 @@ models_flags <- runLlm(
 models_final <- models_flags |>
   select(!c(
     "discontinuation_measure", "analytic_methods", "other_methods_detail",
-    "evidence_quotes", "uncertainty"
+    "evidence_quotes", "uncertainty", "model", "reviewer"
   )) |>
   mutate(across(everything(), as.character)) |>
   pivot_longer(!"pmid") |>
@@ -93,7 +93,7 @@ models_final <- models_flags |>
   mutate(across(!"pmid", as.logical))
 
 abstractInsuficient <- models_final |>
-  filter(abstract_sufficient) |>
+  filter(abstract_sufficient & method_identified) |>
   pull("pmid")
 
 papers <- papers |>
